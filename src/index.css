@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "IBMPlexSans";
+  src: url("/fonts/IBMPlexSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "IBMPlexSans";
+  src: url("/fonts/IBMPlexSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+}
+
+* {
+  font-family: "IBMPlexSans", sans-serif !important;
+}
+
+[data-deleting="true"] {
+  background-color: #f8d7da !important;
+}
+
+[data-id^="auto-generated"] {
+  background-color: #eee !important;
+}
+
+[data-id^="auto-generated"] .MuiDataGrid-actionsCell {
+  display: none !important;
+}
