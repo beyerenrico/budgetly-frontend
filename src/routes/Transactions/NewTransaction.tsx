@@ -20,6 +20,7 @@ type Props = {
 function NewTransaction({ onAdd }: Props) {
   const [planners, setPlanners] = useState<Planner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
   const [values, setValues] = useState<Transaction>({
     title: "",
     sender: "",
@@ -80,6 +81,7 @@ function NewTransaction({ onAdd }: Props) {
   useEffect(() => {
     api.planners.findAll().then((planners) => setPlanners(planners));
     api.categories.findAll().then((categories) => setCategories(categories));
+    api.contracts.findAll().then((contracts) => setContracts(contracts));
   }, []);
 
   return (
@@ -159,6 +161,19 @@ function NewTransaction({ onAdd }: Props) {
             setValues({ ...values, category: newValue });
           }}
           renderInput={(params) => <TextField {...params} label="Category" />}
+        />
+      </FormControl>
+      <FormControl fullWidth sx={{ my: 2 }}>
+        <Autocomplete
+          id="contracts"
+          value={values.contract as Contract}
+          options={contracts}
+          getOptionLabel={(option) => option.title}
+          onChange={(event, newValue) => {
+            if (!newValue) return;
+            setValues({ ...values, contract: newValue });
+          }}
+          renderInput={(params) => <TextField {...params} label="Contract" />}
         />
       </FormControl>
       <Button onClick={handleSubmit} variant="contained" fullWidth>
