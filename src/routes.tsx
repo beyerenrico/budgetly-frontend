@@ -1,8 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./routes/Root";
-import Home, { homeLoader } from "./routes/Home";
-import Transactions, { transactionsLoader } from "./routes/Transactions";
-import Planners, { plannersLoader } from "./routes/Planners";
+import Home, { homeLoader } from "./routes/Dashboard/Home";
+import Transactions, {
+  transactionsLoader,
+} from "./routes/Transactions/TransactionsPage";
+import Planners, { plannersLoader } from "./routes/Planners/PlannersPage";
 
 const ErrorBoundary = () => {
   return <div>404</div>;

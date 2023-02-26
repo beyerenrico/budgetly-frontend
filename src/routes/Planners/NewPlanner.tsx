@@ -6,7 +6,7 @@ import {
   OutlinedInput,
   Typography,
 } from "@mui/material";
-import api from "../api";
+import api from "../../api";
 
 type Props = {
   onAdd: () => void;

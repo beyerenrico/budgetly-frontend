@@ -1,6 +1,6 @@
 import { useLoaderData } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
-import api from "../api";
+import api from "../../api";
 
 type Props = {};
 

@@ -4,7 +4,7 @@ interface Planner {
   id: string;
   name: string;
   description: string;
-  transactions: Transaction[];
+  transactions?: Transaction[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -16,14 +16,30 @@ interface PlannerCreate {
 
 type PlannerUpdate = PlannerCreate;
 
-interface Transaction {
+interface Category {
   id: string;
+  name: string;
+  transactions?: Transaction[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface CategoryCreate {
+  id?: string;
+  name: string;
+}
+
+type CategoryUpdate = CategoryCreate;
+
+interface Transaction {
+  id?: string;
   title: string;
   sender: string;
   receiver: string;
   amount: number;
   date: string;
-  planner: Planner | null;
+  planner: Planner | string | null;
+  category: Category | string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -34,7 +50,8 @@ interface TransactionCreate {
   receiver: string;
   amount: number;
   date: string;
-  planner: string;
+  planner: string | null;
+  category: string | null;
 }
 
 type TransactionUpdate = TransactionCreate;

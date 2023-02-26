@@ -8,6 +8,7 @@ type Anchor = "top" | "left" | "bottom" | "right";
 type Props = {
   children: React.ReactNode;
   buttonLabel: string;
+  buttonVariant?: "text" | "outlined" | "contained";
   anchor?: Anchor;
   open?: boolean;
   onToggle?: (open: boolean) => void;
@@ -16,6 +17,7 @@ type Props = {
 export default function SwipeableTemporaryDrawer({
   children,
   buttonLabel,
+  buttonVariant = "contained",
   anchor = "right",
   open = false,
   onToggle,
@@ -43,7 +45,7 @@ export default function SwipeableTemporaryDrawer({
 
   return (
     <React.Fragment>
-      <Button onClick={toggleDrawer(true)} variant="contained">
+      <Button onClick={toggleDrawer(true)} variant={buttonVariant}>
         {buttonLabel}
       </Button>
       <SwipeableDrawer

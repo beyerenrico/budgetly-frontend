@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
-import api from "../api";
+import api from "../../api";
 
 type Props = {
   onAdd: () => void;
@@ -19,13 +19,15 @@ type Props = {
 
 function NewTransaction({ onAdd }: Props) {
   const [planners, setPlanners] = useState<Planner[]>([]);
-  const [values, setValues] = useState<TransactionCreate>({
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [values, setValues] = useState<Transaction>({
     title: "",
     sender: "",
     receiver: "",
     amount: 0.0,
     date: new Date().toISOString(),
-    planner: "",
+    planner: null,
+    category: null,
   });
 
   const handleChange =
@@ -36,13 +38,23 @@ function NewTransaction({ onAdd }: Props) {
 
   const handleSubmit = async (event: React.MouseEvent) => {
     event.preventDefault();
+
+    if (typeof values.planner === "string") {
+      values.planner = JSON.parse(values.planner) as Planner;
+    }
+
+    if (typeof values.category === "string") {
+      values.category = JSON.parse(values.category) as Planner;
+    }
+
     await api.transactions.create({
       title: values.title,
       sender: values.sender,
       receiver: values.receiver,
       amount: values.amount,
       date: values.date,
-      planner: values.planner,
+      planner: values.planner?.id || null,
+      category: values.category?.id || null,
     });
 
     setValues({
@@ -51,7 +63,8 @@ function NewTransaction({ onAdd }: Props) {
       receiver: "",
       amount: 0.0,
       date: new Date().toISOString(),
-      planner: "",
+      planner: null,
+      category: null,
     });
 
     onAdd();
@@ -59,6 +72,7 @@ function NewTransaction({ onAdd }: Props) {
 
   useEffect(() => {
     api.planners.findAll().then((planners) => setPlanners(planners));
+    api.categories.findAll().then((categories) => setCategories(categories));
   }, []);
 
   return (
@@ -117,13 +131,27 @@ function NewTransaction({ onAdd }: Props) {
       <FormControl fullWidth sx={{ my: 2 }}>
         <Autocomplete
           id="planners"
+          value={values.planner as Planner}
           options={planners}
           getOptionLabel={(option) => option.name}
           onChange={(event, newValue) => {
             if (!newValue) return;
-            setValues({ ...values, planner: newValue.id });
+            setValues({ ...values, planner: newValue });
           }}
           renderInput={(params) => <TextField {...params} label="Planner" />}
+        />
+      </FormControl>
+      <FormControl fullWidth sx={{ my: 2 }}>
+        <Autocomplete
+          id="categories"
+          value={values.category as Category}
+          options={categories}
+          getOptionLabel={(option) => option.name}
+          onChange={(event, newValue) => {
+            if (!newValue) return;
+            setValues({ ...values, category: newValue });
+          }}
+          renderInput={(params) => <TextField {...params} label="Category" />}
         />
       </FormControl>
       <Button onClick={handleSubmit} variant="contained" fullWidth>

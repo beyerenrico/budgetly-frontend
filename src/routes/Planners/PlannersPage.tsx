@@ -8,8 +8,8 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import api from "../api";
-import SwipeableTemporaryDrawer from "../components/Drawer";
+import api from "../../api";
+import SwipeableTemporaryDrawer from "../../components/Drawer";
 import { useEffect, useState } from "react";
 import NewPlanner from "./NewPlanner";
 import { grey } from "@mui/material/colors";
@@ -60,6 +60,22 @@ function Planners({}: Props) {
         </SwipeableTemporaryDrawer>
       </Box>
       <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
+        {data.length === 0 && (
+          <Paper
+            elevation={0}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: 400,
+              border: "1px solid",
+              borderColor: grey[300],
+              gridColumn: "1 / 4",
+            }}
+          >
+            <Typography variant="h6">No planners found</Typography>
+          </Paper>
+        )}
         {data.map((planner, index) => (
           <Card
             elevation={0}
