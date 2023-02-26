@@ -4,10 +4,12 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import CategoryIcon from "@mui/icons-material/Category";
 
 import {
   AppBar,
   Box,
+  Collapse,
   CssBaseline,
   Divider,
   Drawer,
@@ -20,34 +22,72 @@ import {
   Toolbar,
   useTheme,
 } from "@mui/material";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLoaderData, useLocation } from "react-router-dom";
 import { grey } from "@mui/material/colors";
+import api from "../api";
 
 const drawerWidth = 240;
 
 interface Props {}
 
-const drawerMenu = [
-  {
-    title: "Dashboard",
-    icon: <HomeIcon />,
-    href: "/",
-  },
-  {
-    title: "Planners",
-    icon: <CalendarTodayIcon />,
-    href: "/planners",
-  },
-  {
-    title: "Transactions",
-    icon: <AccountBalanceIcon />,
-    href: "/transactions",
-  },
-];
+export async function rootLoader() {
+  const planners = await api.planners.findAll();
+  const transactions = await api.transactions.findAll();
+  const categories = await api.categories.findAll();
+  return { planners, transactions, categories };
+}
 
 export default function Layout({}: Props) {
+  const { planners, transactions, categories } = useLoaderData() as {
+    planners: Planner[];
+    transactions: Transaction[];
+    categories: Category[];
+  };
+
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const theme = useTheme();
+
+  const drawerMenu = [
+    {
+      title: "Dashboard",
+      icon: <HomeIcon />,
+      href: "/",
+    },
+    {
+      title: "Planners",
+      icon: <CalendarTodayIcon />,
+      href: "/planners",
+      children: planners.map((planner) => {
+        return {
+          title: planner.name,
+          href: `/planners/${planner.id}`,
+        };
+      }),
+    },
+    {
+      title: "Transactions",
+      icon: <AccountBalanceIcon />,
+      href: "/transactions",
+      children: transactions.map((transaction) => {
+        return {
+          title: transaction.title,
+          href: `/transactions/${transaction.id}`,
+        };
+      }),
+    },
+    {
+      title: "Categories",
+      icon: <CategoryIcon />,
+      href: "/categories",
+      children: categories.map((category) => {
+        return {
+          title: category.name,
+          href: `/categories/${category.id}`,
+        };
+      }),
+    },
+  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -63,13 +103,36 @@ export default function Layout({}: Props) {
       </Toolbar>
       <Divider />
       <List>
-        {drawerMenu.map(({ title, icon, href }, index) => (
-          <ListItem key={index} disablePadding>
-            <ListItemButton component={Link} to={href}>
-              <ListItemIcon>{icon}</ListItemIcon>
-              <ListItemText primary={title} />
-            </ListItemButton>
-          </ListItem>
+        {drawerMenu.map(({ title, icon, href, children }, parentIndex) => (
+          <Box key={parentIndex}>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                to={href}
+                selected={location.pathname === href}
+              >
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={title} />
+              </ListItemButton>
+            </ListItem>
+            <Collapse in={location.pathname.startsWith(href)} unmountOnExit>
+              {children &&
+                children.map((child, childIndex) => (
+                  <ListItem key={`${parentIndex}_${childIndex}`} disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      to={child.href}
+                      selected={location.pathname === child.href}
+                      sx={{ pl: 9, color: grey[700] }}
+                      dense
+                    >
+                      <ListItemText primary={child.title} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              <Divider />
+            </Collapse>
+          </Box>
         ))}
       </List>
     </div>
