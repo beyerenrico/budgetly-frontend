@@ -16,6 +16,7 @@ import moment from "moment";
 import NewTransaction from "./NewTransaction";
 import NewCategory from "../Categories/NewCategory";
 import { useSnackbar } from "notistack";
+import NewContract from "../Contracts/NewContract";
 
 type Props = {};
 
@@ -28,24 +29,31 @@ export async function transactionsLoader() {
   const transactions = await api.transactions.findAll();
   const planners = await api.planners.findAll();
   const categories = await api.categories.findAll();
-  return { transactions, planners, categories };
+  const contracts = await api.contracts.findAll();
+
+  return { transactions, planners, categories, contracts };
 }
 
 function Transactions({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const apiRef = useGridApiRef();
-  const { transactions, planners, categories } = useLoaderData() as {
+  const { transactions, planners, categories, contracts } = useLoaderData() as {
     transactions: Transaction[];
     planners: Planner[];
     categories: Category[];
+    contracts: Contract[];
   };
-  const [data, setData] = useState<Transaction[]>(transactions);
-  const [cats, setCats] = useState<Category[]>(categories);
+  const [stateTransactions, setStateTransactions] =
+    useState<Transaction[]>(transactions);
+  const [stateCategories, setStateCategories] =
+    useState<Category[]>(categories);
+  const [stateContracts, setStateContracts] = useState<Contract[]>(contracts);
 
-  const [drawerOpenCategory, setDrawerOpenCategory] = useState(false);
   const [drawerOpenTransaction, setDrawerOpenTransaction] = useState(false);
+  const [drawerOpenCategory, setDrawerOpenCategory] = useState(false);
+  const [drawerOpenContract, setDrawerOpenContract] = useState(false);
 
-  const [plannerOptions, setPlannerOptions] = useState(
+  const [plannerOptions] = useState(
     planners.map((planner) => ({
       value: JSON.stringify(planner),
       label: planner.name,
@@ -53,14 +61,39 @@ function Transactions({}: Props) {
   );
 
   const [categoryOptions, setCategoryOptions] = useState(
-    cats.map((category) => ({
+    stateCategories.map((category) => ({
       value: JSON.stringify(category),
       label: category.name,
     }))
   );
 
+  const [contractOptions, setContractOptions] = useState(
+    stateContracts.map((contract) => ({
+      value: JSON.stringify(contract),
+      label: contract.title,
+    }))
+  );
+
   const columns = useMemo<GridColumns<Transaction>>(
     () => [
+      {
+        field: "title",
+        headerName: "Title",
+        flex: 1,
+        editable: true,
+      },
+      {
+        field: "sender",
+        headerName: "Sender",
+        flex: 1,
+        editable: true,
+      },
+      {
+        field: "receiver",
+        headerName: "Receiver",
+        flex: 1,
+        editable: true,
+      },
       {
         field: "planner",
         headerName: "Planner",
@@ -87,11 +120,13 @@ function Transactions({}: Props) {
       {
         field: "category",
         headerName: "Category",
-        width: 150,
+        flex: 1,
         editable: true,
         type: "singleSelect",
         groupable: true,
-        valueOptions: categoryOptions,
+        valueOptions: () => {
+          return categoryOptions;
+        },
         valueFormatter: ({ value }) => {
           if (typeof value === "string") {
             return JSON.parse(value).name;
@@ -107,13 +142,51 @@ function Transactions({}: Props) {
           return value?.name;
         },
       },
-      { field: "title", headerName: "Title", width: 150, editable: true },
-      { field: "sender", headerName: "Sender", width: 150, editable: true },
-      { field: "receiver", headerName: "Receiver", width: 150, editable: true },
+      {
+        field: "contract",
+        headerName: "Contract",
+        flex: 1,
+        editable: true,
+        type: "singleSelect",
+        groupable: true,
+        valueOptions: ({ row }) => {
+          const filteredOptions = contractOptions.filter((contract) => {
+            const contractValue: Contract = JSON.parse(contract.value);
+
+            if (typeof contractValue.planner === "string") {
+              contractValue.planner = JSON.parse(
+                contractValue.planner
+              ) as Planner;
+            }
+
+            if (typeof row?.planner === "string") {
+              row.planner = JSON.parse(row.planner) as Planner;
+            }
+
+            return contractValue.planner?.id === row?.planner?.id;
+          });
+
+          return filteredOptions;
+        },
+        valueFormatter: ({ value }) => {
+          if (typeof value === "string") {
+            return JSON.parse(value).title;
+          }
+
+          return value?.title;
+        },
+        groupingValueGetter: ({ value }) => {
+          if (typeof value === "string") {
+            return JSON.parse(value).title;
+          }
+
+          return value?.title;
+        },
+      },
       {
         field: "date",
         headerName: "Date",
-        width: 150,
+        flex: 1,
         editable: true,
         type: "date",
         valueFormatter: ({ value }) => {
@@ -123,7 +196,7 @@ function Transactions({}: Props) {
       {
         field: "year",
         headerName: "Year",
-        width: 150,
+        flex: 1,
         editable: false,
         groupingValueGetter: ({ row }) => {
           return row.date ? moment(row.date).format("YYYY") : "";
@@ -151,10 +224,9 @@ function Transactions({}: Props) {
           { value: "November", label: "November" },
           { value: "December", label: "December" },
         ],
-        width: 150,
+        flex: 1,
         editable: false,
         groupingValueGetter(params) {
-          console.log(params);
           return params.row.date ? moment(params.row.date).format("MMMM") : "";
         },
         valueGetter: ({ row }) => {
@@ -164,7 +236,7 @@ function Transactions({}: Props) {
       {
         field: "amount",
         headerName: "Amount",
-        width: 150,
+        flex: 1,
         editable: true,
         type: "number",
         groupable: false,
@@ -190,22 +262,22 @@ function Transactions({}: Props) {
 
               await api.transactions.remove(params.id as string);
               await transactionsLoader().then((data) =>
-                setData(data.transactions)
+                setStateTransactions(data.transactions)
               );
             }}
           />,
         ],
       },
     ],
-    [plannerOptions, categoryOptions]
+    [plannerOptions, categoryOptions, contractOptions]
   );
 
   const initialState = useKeepGroupedColumnsHidden({
     apiRef,
     initialState: {
-      // rowGrouping: {
-      //   model: ["planner"],
-      // },
+      rowGrouping: {
+        model: ["planner", "year", "month"],
+      },
       sorting: {
         sortModel: [
           {
@@ -223,14 +295,16 @@ function Transactions({}: Props) {
   });
 
   const addHandlerTransaction = async () => {
-    await transactionsLoader().then((data) => setData(data.transactions));
+    await transactionsLoader().then((data) =>
+      setStateTransactions(data.transactions)
+    );
     setDrawerOpenTransaction(false);
     enqueueSnackbar("Transaction added", { variant: "success" });
   };
 
   const addHandlerCategory = async () => {
     await transactionsLoader().then((data) => {
-      setCats(data.categories);
+      setStateCategories(data.categories);
       setCategoryOptions(
         data.categories.map((category) => ({
           value: JSON.stringify(category),
@@ -242,13 +316,31 @@ function Transactions({}: Props) {
     enqueueSnackbar("Category added", { variant: "success" });
   };
 
+  const addHandlerContract = async () => {
+    await transactionsLoader().then((data) => {
+      setStateContracts(data.contracts);
+      setContractOptions(
+        data.contracts.map((contract) => ({
+          value: JSON.stringify(contract),
+          label: contract.title,
+        }))
+      );
+    });
+    setDrawerOpenContract(false);
+    enqueueSnackbar("Contract added", { variant: "success" });
+  };
+
   useEffect(() => {
-    setData(transactions);
+    setStateTransactions(transactions);
   }, [transactions]);
 
   useEffect(() => {
-    setCats(categories);
+    setStateCategories(categories);
   }, [categories]);
+
+  useEffect(() => {
+    setStateContracts(contracts);
+  }, [contracts]);
 
   return (
     <>
@@ -261,6 +353,17 @@ function Transactions({}: Props) {
         <Typography variant="h4">Transactions</Typography>
 
         <Box display="flex" gap={1}>
+          <SwipeableTemporaryDrawer
+            buttonLabel="Add Contract"
+            buttonVariant="outlined"
+            anchor="right"
+            open={drawerOpenContract}
+            onToggle={(open) => setDrawerOpenContract(open)}
+          >
+            <Box padding={3} width={350} display="flex" flexDirection="column">
+              <NewContract onAdd={addHandlerContract} />
+            </Box>
+          </SwipeableTemporaryDrawer>
           <SwipeableTemporaryDrawer
             buttonLabel="Add Category"
             buttonVariant="outlined"
@@ -285,18 +388,16 @@ function Transactions({}: Props) {
         </Box>
       </Box>
       <DataGridPremium
+        isRowSelectable={() => false}
         density="compact"
         apiRef={apiRef}
-        rows={data}
+        rows={stateTransactions}
         columns={columns}
         experimentalFeatures={{ newEditingApi: true, aggregation: true }}
         initialState={initialState}
         editMode="row"
         components={{
           Toolbar: GridToolbar,
-        }}
-        onRowEditStart={(params) => {
-          console.log(params);
         }}
         onProcessRowUpdateError={(params) => {
           enqueueSnackbar(params.error.message, { variant: "error" });
@@ -312,8 +413,13 @@ function Transactions({}: Props) {
             newRow.category = JSON.parse(newRow.category) as Category;
           }
 
+          if (typeof newRow.contract === "string") {
+            newRow.contract = JSON.parse(newRow.contract) as Contract;
+          }
+
           if (!newRow.planner) throw new Error("No planner");
           if (!newRow.category) throw new Error("No category");
+          if (!newRow.contract) throw new Error("No contract");
 
           await api.transactions.update(newRow.id, {
             title: newRow.title,
@@ -323,11 +429,15 @@ function Transactions({}: Props) {
             amount: newRow.amount,
             planner: newRow.planner.id,
             category: newRow.category.id,
+            contract: newRow.contract.id,
           });
 
           enqueueSnackbar("Transaction updated", { variant: "success" });
 
+          newRow.planner = JSON.stringify(newRow.planner);
           newRow.category = JSON.stringify(newRow.category);
+          newRow.contract = JSON.stringify(newRow.contract);
+
           return newRow;
         }}
       />

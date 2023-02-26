@@ -28,6 +28,7 @@ function NewTransaction({ onAdd }: Props) {
     date: new Date().toISOString(),
     planner: null,
     category: null,
+    contract: null,
   });
 
   const handleChange =
@@ -44,7 +45,11 @@ function NewTransaction({ onAdd }: Props) {
     }
 
     if (typeof values.category === "string") {
-      values.category = JSON.parse(values.category) as Planner;
+      values.category = JSON.parse(values.category) as Category;
+    }
+
+    if (typeof values.contract === "string") {
+      values.contract = JSON.parse(values.contract) as Contract;
     }
 
     await api.transactions.create({
@@ -55,6 +60,7 @@ function NewTransaction({ onAdd }: Props) {
       date: values.date,
       planner: values.planner?.id || null,
       category: values.category?.id || null,
+      contract: values.contract?.id || null,
     });
 
     setValues({
@@ -65,6 +71,7 @@ function NewTransaction({ onAdd }: Props) {
       date: new Date().toISOString(),
       planner: null,
       category: null,
+      contract: null,
     });
 
     onAdd();

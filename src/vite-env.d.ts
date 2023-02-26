@@ -31,6 +31,23 @@ interface CategoryCreate {
 
 type CategoryUpdate = CategoryCreate;
 
+interface Contract {
+  id: string;
+  title: string;
+  transactions?: Transaction[];
+  planner: Planner | string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface ContractCreate {
+  id?: string;
+  title: string;
+  planner: Planner | string | null;
+}
+
+type ContractUpdate = ContractCreate;
+
 interface Transaction {
   id?: string;
   title: string;
@@ -40,6 +57,7 @@ interface Transaction {
   date: string;
   planner: Planner | string | null;
   category: Category | string | null;
+  contract: Contract | string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -52,6 +70,7 @@ interface TransactionCreate {
   date: string;
   planner: string | null;
   category: string | null;
+  contract: string | null;
 }
 
 type TransactionUpdate = TransactionCreate;
