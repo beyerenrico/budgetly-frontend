@@ -1,9 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
-import Layout from "./routes/Root";
+import Layout, { rootLoader } from "./routes/Root";
 import Home, { homeLoader } from "./routes/Dashboard/Home";
 import Transactions, {
   transactionsLoader,
 } from "./routes/Transactions/TransactionsPage";
+import Categories, {
+  categoriesLoader,
+} from "./routes/Categories/CategoriesPage";
 import Planners, { plannersLoader } from "./routes/Planners/PlannersPage";
 
 const ErrorBoundary = () => {
@@ -14,6 +17,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
+    loader: rootLoader,
     errorElement: <ErrorBoundary />,
     children: [
       { path: "/", element: <Home />, loader: homeLoader },
@@ -26,6 +30,11 @@ const router = createBrowserRouter([
         path: "/transactions",
         element: <Transactions />,
         loader: transactionsLoader,
+      },
+      {
+        path: "/categories",
+        element: <Categories />,
+        loader: categoriesLoader,
       },
       { path: "*", element: <ErrorBoundary /> },
     ],
