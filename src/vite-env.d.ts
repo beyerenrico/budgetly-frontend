@@ -57,7 +57,7 @@ interface Transaction {
   date: string;
   planner: Planner | string | null;
   category: Category | string | null;
-  contract: Contract | string | null;
+  contract?: Contract | string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -70,7 +70,7 @@ interface TransactionCreate {
   date: string;
   planner: string | null;
   category: string | null;
-  contract: string | null;
+  contract?: string | null;
 }
 
 type TransactionUpdate = TransactionCreate;
