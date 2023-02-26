@@ -37,3 +37,13 @@
 [data-id^="auto-generated"] .MuiDataGrid-actionsCell {
   display: none !important;
 }
+
+.MuiDataGrid-aggregationColumnHeaderLabel {
+  font-weight: 700 !important;
+  color: #3f51b5 !important;
+}
+
+.MuiDataGrid-footerCell {
+  font-weight: 700 !important;
+  color: #3f51b5 !important;
+}
