@@ -7,13 +7,17 @@ type Props = {};
 export async function homeLoader() {
   const planners = await api.planners.findAll();
   const transactions = await api.transactions.findAll();
-  return { planners, transactions };
+  const categories = await api.categories.findAll();
+  const contracts = await api.contracts.findAll();
+  return { planners, transactions, categories, contracts };
 }
 
 function Home({}: Props) {
-  const { planners, transactions } = useLoaderData() as {
+  const { planners, transactions, categories, contracts } = useLoaderData() as {
     planners: Planner[];
     transactions: Transaction[];
+    categories: Category[];
+    contracts: Contract[];
   };
 
   return (
@@ -29,6 +33,8 @@ function Home({}: Props) {
       <Box>
         <p>{JSON.stringify(planners)}</p>
         <p>{JSON.stringify(transactions)}</p>
+        <p>{JSON.stringify(categories)}</p>
+        <p>{JSON.stringify(contracts)}</p>
       </Box>
     </>
   );
