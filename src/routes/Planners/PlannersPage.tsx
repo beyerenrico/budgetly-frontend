@@ -13,6 +13,8 @@ import SwipeableTemporaryDrawer from "../../components/Drawer";
 import { useEffect, useState } from "react";
 import NewPlanner from "./NewPlanner";
 import { grey } from "@mui/material/colors";
+import { useSnackbar } from "notistack";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 type Props = {};
 
@@ -22,6 +24,7 @@ export async function plannersLoader() {
 }
 
 function Planners({}: Props) {
+  const { enqueueSnackbar } = useSnackbar();
   const { planners } = useLoaderData() as {
     planners: Planner[];
   };
@@ -31,6 +34,7 @@ function Planners({}: Props) {
 
   const addHandler = async () => {
     await plannersLoader().then((data) => setData(data.planners));
+    enqueueSnackbar("Planner added", { variant: "success" });
     setDrawerOpen(false);
   };
 
@@ -80,19 +84,48 @@ function Planners({}: Props) {
           <Card
             elevation={0}
             key={index}
-            sx={{ border: "1px solid", borderColor: grey[300] }}
+            sx={{
+              border: "1px solid",
+              borderColor: grey[300],
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
           >
             <CardContent>
               <Typography variant="h6">{planner.name}</Typography>
               <Typography paragraph>{planner.description}</Typography>
             </CardContent>
-            <CardActions sx={{ p: 2 }}>
+            <CardActions
+              sx={{ display: "flex", justifyContent: "space-between", p: 2 }}
+            >
               <Button
                 variant="contained"
                 component={Link}
                 to={`/planners/${planner.id}`}
               >
                 View
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={async () => {
+                  try {
+                    await api.planners.remove(planner.id);
+                  } catch (error) {
+                    enqueueSnackbar("This planner contains transactions", {
+                      variant: "error",
+                    });
+                    return;
+                  }
+
+                  enqueueSnackbar("Planner deleted", {
+                    variant: "success",
+                  });
+                  setData(data.filter((c) => c.id !== planner.id));
+                }}
+              >
+                <DeleteIcon />
               </Button>
             </CardActions>
           </Card>
