@@ -1,9 +1,11 @@
 import http from "./common";
 
-const findAll = async (
-  where: Record<string, unknown>
-): Promise<Transaction[]> => {
-  return (await http.get("/transactions", where)).data;
+const findAll = async (): Promise<Transaction[]> => {
+  return (await http.get("/transactions")).data;
+};
+
+const findAllByPlanner = async (plannerId: string): Promise<Transaction[]> => {
+  return (await http.get(`/transactions/planner/${plannerId}`)).data;
 };
 
 const findOne = async (id: string): Promise<Transaction> => {
@@ -25,6 +27,13 @@ const remove = async (id: string): Promise<DeleteResponse> => {
   return await http.delete(`/transactions/${id}`);
 };
 
-const TransationService = { findAll, findOne, create, update, remove };
+const TransationService = {
+  findAll,
+  findAllByPlanner,
+  findOne,
+  create,
+  update,
+  remove,
+};
 
 export default TransationService;
