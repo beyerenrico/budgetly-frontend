@@ -71,6 +71,8 @@ function Categories({}: Props) {
             xs: "1fr",
             sm: "repeat(2, 1fr)",
             md: "repeat(3, 1fr)",
+            lg: "repeat(4, 1fr)",
+            xl: "repeat(5, 1fr)",
           },
         }}
       >
