@@ -4,11 +4,20 @@ import {
   DataGridPremium,
   GridActionsCellItem,
   GridColumns,
+  GridNoRowsOverlay,
   GridToolbar,
   useGridApiRef,
   useKeepGroupedColumnsHidden,
 } from "@mui/x-data-grid-premium";
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+  Stack,
+  Typography,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../../api";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
@@ -17,6 +26,11 @@ import NewTransaction from "./NewTransaction";
 import NewCategory from "../Categories/NewCategory";
 import { useSnackbar } from "notistack";
 import NewContract from "../Contracts/NewContract";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import CategoryIcon from "@mui/icons-material/Category";
+import FolderIcon from "@mui/icons-material/Folder";
+import { useGlobalStore } from "../../main";
+import NoPlannerOverlay from "./NoPlannerOverlay";
 
 type Props = {};
 
@@ -26,28 +40,35 @@ const currencyFormatter = new Intl.NumberFormat("de-DE", {
 });
 
 export async function transactionsLoader() {
-  const transactions = await api.transactions.findAll();
   const planners = await api.planners.findAll();
   const categories = await api.categories.findAll();
   const contracts = await api.contracts.findAll();
 
-  return { transactions, planners, categories, contracts };
+  return { planners, categories, contracts };
 }
 
 function Transactions({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const apiRef = useGridApiRef();
-  const { transactions, planners, categories, contracts } = useLoaderData() as {
-    transactions: Transaction[];
+  const { planners, categories, contracts } = useLoaderData() as {
     planners: Planner[];
     categories: Category[];
     contracts: Contract[];
   };
-  const [stateTransactions, setStateTransactions] =
-    useState<Transaction[]>(transactions);
+
+  const { selectedPlanner, setSelectedPlanner } = useGlobalStore((state) => ({
+    selectedPlanner: state.planner,
+    setSelectedPlanner: state.setPlanner,
+  }));
+
+  const [stateTransactions, setStateTransactions] = useState<Transaction[]>([]);
+
   const [stateCategories, setStateCategories] =
     useState<Category[]>(categories);
+
   const [stateContracts, setStateContracts] = useState<Contract[]>(contracts);
+
+  const [rowGroupingModel, setRowGroupingModel] = useState(["planner"]);
 
   const [drawerOpenTransaction, setDrawerOpenTransaction] = useState(false);
   const [drawerOpenCategory, setDrawerOpenCategory] = useState(false);
@@ -74,53 +95,32 @@ function Transactions({}: Props) {
     }))
   );
 
+  const rowGroupingModelStr = rowGroupingModel.join("-");
+
   const columns = useMemo<GridColumns<Transaction>>(
     () => [
       {
         field: "title",
         headerName: "Title",
-        flex: 1,
+        width: 150,
         editable: true,
       },
       {
         field: "sender",
         headerName: "Sender",
-        flex: 1,
+        width: 150,
         editable: true,
       },
       {
         field: "receiver",
         headerName: "Receiver",
-        flex: 1,
+        width: 150,
         editable: true,
-      },
-      {
-        field: "planner",
-        headerName: "Planner",
-        width: 200,
-        editable: true,
-        type: "singleSelect",
-        groupable: true,
-        valueOptions: plannerOptions,
-        valueFormatter: ({ value }) => {
-          if (typeof value === "string") {
-            return JSON.parse(value).name;
-          }
-
-          return value?.name;
-        },
-        groupingValueGetter: ({ value }) => {
-          if (typeof value === "string") {
-            return JSON.parse(value).name;
-          }
-
-          return value?.name;
-        },
       },
       {
         field: "category",
         headerName: "Category",
-        flex: 1,
+        width: 150,
         editable: true,
         type: "singleSelect",
         groupable: true,
@@ -145,7 +145,7 @@ function Transactions({}: Props) {
       {
         field: "contract",
         headerName: "Contract",
-        flex: 1,
+        width: 150,
         editable: true,
         type: "singleSelect",
         groupable: true,
@@ -186,7 +186,7 @@ function Transactions({}: Props) {
       {
         field: "date",
         headerName: "Date",
-        flex: 1,
+        width: 150,
         editable: true,
         type: "date",
         valueFormatter: ({ value }) => {
@@ -196,7 +196,7 @@ function Transactions({}: Props) {
       {
         field: "year",
         headerName: "Year",
-        flex: 1,
+        width: 150,
         editable: false,
         groupingValueGetter: ({ row }) => {
           return row.date ? moment(row.date).format("YYYY") : "";
@@ -224,7 +224,7 @@ function Transactions({}: Props) {
           { value: "November", label: "November" },
           { value: "December", label: "December" },
         ],
-        flex: 1,
+        width: 150,
         editable: false,
         groupingValueGetter(params) {
           return params.row.date ? moment(params.row.date).format("MMMM") : "";
@@ -236,7 +236,7 @@ function Transactions({}: Props) {
       {
         field: "amount",
         headerName: "Amount",
-        flex: 1,
+        width: 150,
         editable: true,
         type: "number",
         groupable: false,
@@ -261,9 +261,11 @@ function Transactions({}: Props) {
               rowElement?.setAttribute("data-deleting", "true");
 
               await api.transactions.remove(params.id as string);
-              await transactionsLoader().then((data) =>
-                setStateTransactions(data.transactions)
-              );
+              await api.transactions
+                .findAll({ planner: { id: selectedPlanner?.id } })
+                .then((data) => {
+                  setStateTransactions(data);
+                });
             }}
           />,
         ],
@@ -276,7 +278,10 @@ function Transactions({}: Props) {
     apiRef,
     initialState: {
       rowGrouping: {
-        model: ["planner", "year", "month"],
+        model: rowGroupingModel,
+      },
+      pinnedColumns: {
+        right: ["amount"],
       },
       sorting: {
         sortModel: [
@@ -295,9 +300,11 @@ function Transactions({}: Props) {
   });
 
   const addHandlerTransaction = async () => {
-    await transactionsLoader().then((data) =>
-      setStateTransactions(data.transactions)
-    );
+    await api.transactions
+      .findAll({ planner: { id: selectedPlanner?.id } })
+      .then((data) => {
+        setStateTransactions(data);
+      });
     setDrawerOpenTransaction(false);
     enqueueSnackbar("Transaction added", { variant: "success" });
   };
@@ -330,9 +337,49 @@ function Transactions({}: Props) {
     enqueueSnackbar("Contract added", { variant: "success" });
   };
 
+  const actions: {
+    title: string;
+    open: boolean;
+    variant: "contained" | "outlined";
+    setOpen: (open: boolean) => void;
+    icon: JSX.Element;
+    component: JSX.Element;
+  }[] = [
+    {
+      title: "Add Transaction",
+      open: drawerOpenTransaction,
+      variant: "contained",
+      setOpen: setDrawerOpenTransaction,
+      icon: <AccountBalanceIcon />,
+      component: <NewTransaction onAdd={addHandlerTransaction} />,
+    },
+    {
+      title: "Add Category",
+      open: drawerOpenCategory,
+      variant: "outlined",
+      setOpen: setDrawerOpenCategory,
+      icon: <CategoryIcon />,
+      component: <NewCategory onAdd={addHandlerCategory} />,
+    },
+    {
+      title: "Add Contract",
+      open: drawerOpenContract,
+      variant: "outlined",
+      setOpen: setDrawerOpenContract,
+      icon: <FolderIcon />,
+      component: <NewContract onAdd={addHandlerContract} />,
+    },
+  ];
+
   useEffect(() => {
-    setStateTransactions(transactions);
-  }, [transactions]);
+    if (!selectedPlanner) return;
+
+    api.transactions
+      .findAll({ planner: { id: selectedPlanner?.id } })
+      .then((data) => {
+        setStateTransactions(data);
+      });
+  }, [selectedPlanner]);
 
   useEffect(() => {
     setStateCategories(categories);
@@ -348,99 +395,155 @@ function Transactions({}: Props) {
         display="flex"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+        }}
       >
         <Typography variant="h4">Transactions</Typography>
 
-        <Box display="flex" gap={1}>
-          <SwipeableTemporaryDrawer
-            buttonLabel="Add Contract"
-            buttonVariant="outlined"
-            anchor="right"
-            open={drawerOpenContract}
-            onToggle={(open) => setDrawerOpenContract(open)}
-          >
-            <Box padding={3} width={350} display="flex" flexDirection="column">
-              <NewContract onAdd={addHandlerContract} />
-            </Box>
-          </SwipeableTemporaryDrawer>
-          <SwipeableTemporaryDrawer
-            buttonLabel="Add Category"
-            buttonVariant="outlined"
-            anchor="right"
-            open={drawerOpenCategory}
-            onToggle={(open) => setDrawerOpenCategory(open)}
-          >
-            <Box padding={3} width={350} display="flex" flexDirection="column">
-              <NewCategory onAdd={addHandlerCategory} />
-            </Box>
-          </SwipeableTemporaryDrawer>
-          <SwipeableTemporaryDrawer
-            buttonLabel="New Transaction"
-            anchor="right"
-            open={drawerOpenTransaction}
-            onToggle={(open) => setDrawerOpenTransaction(open)}
-          >
-            <Box padding={3} width={350} display="flex" flexDirection="column">
-              <NewTransaction onAdd={addHandlerTransaction} />
-            </Box>
-          </SwipeableTemporaryDrawer>
-        </Box>
+        {selectedPlanner && (
+          <Box gap={1} sx={{ display: { xs: "none", md: "flex" } }}>
+            {actions.map(
+              ({ title, open, variant, setOpen, component }, index) => (
+                <SwipeableTemporaryDrawer
+                  key={index}
+                  buttonLabel={title}
+                  buttonVariant={variant}
+                  anchor="right"
+                  open={open}
+                  onToggle={(open) => setOpen(open)}
+                >
+                  <Box
+                    padding={3}
+                    width={350}
+                    display="flex"
+                    flexDirection="column"
+                  >
+                    {component}
+                  </Box>
+                </SwipeableTemporaryDrawer>
+              )
+            )}
+          </Box>
+        )}
       </Box>
-      <DataGridPremium
-        isRowSelectable={() => false}
-        density="compact"
-        apiRef={apiRef}
-        rows={stateTransactions}
-        columns={columns}
-        experimentalFeatures={{ newEditingApi: true, aggregation: true }}
-        initialState={initialState}
-        editMode="row"
-        components={{
-          Toolbar: GridToolbar,
+      {selectedPlanner && (
+        <SpeedDial
+          ariaLabel="SpeedDial basic example"
+          sx={{
+            display: { md: "none" },
+            position: "absolute",
+            bottom: 16,
+            left: {
+              xs: 16,
+              sm: "calc(240px + 24px)",
+            },
+          }}
+          icon={<SpeedDialIcon />}
+        >
+          {actions.map(({ title, icon, setOpen }) => (
+            <SpeedDialAction
+              key={title}
+              icon={icon}
+              tooltipTitle={title}
+              onClick={() => setOpen(true)}
+            />
+          ))}
+        </SpeedDial>
+      )}
+
+      <Box
+        sx={{
+          height: {
+            xs: "calc(100vh - 320px)",
+            sm: "calc(100vh - 340px)",
+            md: "calc(100vh - 200px)",
+          },
+          width: "100%",
         }}
-        onProcessRowUpdateError={(params) => {
-          enqueueSnackbar(params.error.message, { variant: "error" });
-        }}
-        processRowUpdate={async (newRow: Transaction) => {
-          if (!newRow.id) throw new Error("No ID");
+      >
+        <Stack
+          sx={{
+            flexDirection: { xs: "column", md: "row" },
+            gap: 1,
+            width: "100%",
+            mb: 1,
+          }}
+          alignItems="flex-start"
+          columnGap={1}
+        >
+          <Chip
+            label="Group by year"
+            onClick={() => setRowGroupingModel(["year"])}
+            variant={rowGroupingModelStr === "year" ? "filled" : "outlined"}
+          />
+          <Chip
+            label="Group by year and month"
+            onClick={() => setRowGroupingModel(["year", "month"])}
+            variant={
+              rowGroupingModelStr === "year-month" ? "filled" : "outlined"
+            }
+          />
+        </Stack>
+        <DataGridPremium
+          checkboxSelection
+          rowGroupingModel={rowGroupingModel}
+          density="compact"
+          apiRef={apiRef}
+          rows={stateTransactions}
+          columns={columns}
+          experimentalFeatures={{ newEditingApi: true, aggregation: true }}
+          initialState={initialState}
+          editMode="row"
+          components={{
+            Toolbar: GridToolbar,
+            NoRowsOverlay: selectedPlanner
+              ? GridNoRowsOverlay
+              : NoPlannerOverlay,
+          }}
+          onProcessRowUpdateError={(params) => {
+            enqueueSnackbar(params.error.message, { variant: "error" });
+          }}
+          processRowUpdate={async (newRow: Transaction) => {
+            if (!newRow.id) throw new Error("No ID");
 
-          if (typeof newRow.planner === "string") {
-            newRow.planner = JSON.parse(newRow.planner) as Planner;
-          }
+            if (typeof newRow.planner === "string") {
+              newRow.planner = JSON.parse(newRow.planner) as Planner;
+            }
 
-          if (typeof newRow.category === "string") {
-            newRow.category = JSON.parse(newRow.category) as Category;
-          }
+            if (typeof newRow.category === "string") {
+              newRow.category = JSON.parse(newRow.category) as Category;
+            }
 
-          if (typeof newRow.contract === "string") {
-            newRow.contract = JSON.parse(newRow.contract) as Contract;
-          }
+            if (typeof newRow.contract === "string") {
+              newRow.contract = JSON.parse(newRow.contract) as Contract;
+            }
 
-          if (!newRow.planner) throw new Error("No planner");
-          if (!newRow.category) throw new Error("No category");
-          if (!newRow.contract) throw new Error("No contract");
+            if (!newRow.planner) throw new Error("No planner");
+            if (!newRow.category) throw new Error("No category");
+            if (!newRow.contract) throw new Error("No contract");
 
-          await api.transactions.update(newRow.id, {
-            title: newRow.title,
-            sender: newRow.sender,
-            receiver: newRow.receiver,
-            date: newRow.date,
-            amount: newRow.amount,
-            planner: newRow.planner.id,
-            category: newRow.category.id,
-            contract: newRow.contract.id,
-          });
+            await api.transactions.update(newRow.id, {
+              title: newRow.title,
+              sender: newRow.sender,
+              receiver: newRow.receiver,
+              date: newRow.date,
+              amount: newRow.amount,
+              planner: newRow.planner.id,
+              category: newRow.category.id,
+              contract: newRow.contract.id,
+            });
 
-          enqueueSnackbar("Transaction updated", { variant: "success" });
+            enqueueSnackbar("Transaction updated", { variant: "success" });
 
-          newRow.planner = JSON.stringify(newRow.planner);
-          newRow.category = JSON.stringify(newRow.category);
-          newRow.contract = JSON.stringify(newRow.contract);
+            newRow.planner = JSON.stringify(newRow.planner);
+            newRow.category = JSON.stringify(newRow.category);
+            newRow.contract = JSON.stringify(newRow.contract);
 
-          return newRow;
-        }}
-      />
+            return newRow;
+          }}
+        />
+      </Box>
     </>
   );
 }

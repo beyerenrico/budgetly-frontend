@@ -86,6 +86,11 @@ interface DeleteResponse {
   affected?: number;
 }
 
+interface GlobalStoreState {
+  planner: Planner | null;
+  setPlanner: (planner: Planner | null) => void;
+}
+
 interface Service<T> {
   findAll: () => Promise<T[]>;
   findOne: (id: string) => Promise<T>;

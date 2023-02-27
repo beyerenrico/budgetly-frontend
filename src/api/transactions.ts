@@ -1,7 +1,9 @@
 import http from "./common";
 
-const findAll = async (): Promise<Transaction[]> => {
-  return (await http.get("/transactions")).data;
+const findAll = async (
+  where: Record<string, unknown>
+): Promise<Transaction[]> => {
+  return (await http.get("/transactions", where)).data;
 };
 
 const findOne = async (id: string): Promise<Transaction> => {

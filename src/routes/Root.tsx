@@ -9,6 +9,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import {
   AppBar,
   Box,
+  Chip,
   Collapse,
   CssBaseline,
   Divider,
@@ -20,64 +21,66 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
-  useTheme,
+  Typography,
 } from "@mui/material";
 import { Link, Outlet, useLoaderData, useLocation } from "react-router-dom";
 import { grey } from "@mui/material/colors";
 import api from "../api";
+import { useGlobalStore } from "../main";
 
 const drawerWidth = 240;
 
 interface Props {}
 
 export async function rootLoader() {
-  const planners = await api.planners.findAll();
-  const transactions = await api.transactions.findAll();
   const categories = await api.categories.findAll();
-  return { planners, transactions, categories };
+  return { categories };
 }
 
 export default function Layout({}: Props) {
-  const { planners, transactions, categories } = useLoaderData() as {
-    planners: Planner[];
-    transactions: Transaction[];
+  const { categories } = useLoaderData() as {
     categories: Category[];
   };
 
+  const { selectedPlanner } = useGlobalStore((state) => ({
+    selectedPlanner: state.planner,
+  }));
+
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const theme = useTheme();
 
   const drawerMenu = [
     {
       title: "Dashboard",
+      active: true,
       icon: <HomeIcon />,
       href: "/",
     },
     {
       title: "Planners",
+      active: true,
       icon: <CalendarTodayIcon />,
       href: "/planners",
-      children: planners.map((planner) => {
-        return {
-          title: planner.name,
-          href: `/planners/${planner.id}`,
-        };
-      }),
     },
     {
       title: "Transactions",
+      active: !!selectedPlanner,
       icon: <AccountBalanceIcon />,
       href: "/transactions",
-      children: transactions.map((transaction) => {
-        return {
-          title: transaction.title,
-          href: `/transactions/${transaction.id}`,
-        };
-      }),
+      children: [
+        {
+          title: "Overview",
+          href: "/transactions",
+        },
+        {
+          title: "Monthly",
+          href: "/transactions/monthly",
+        },
+      ],
     },
     {
       title: "Categories",
+      active: true,
       icon: <CategoryIcon />,
       href: "/categories",
       children: categories.map((category) => {
@@ -97,43 +100,55 @@ export default function Layout({}: Props) {
     <div>
       <Toolbar
         variant="dense"
-        sx={{ backgroundColor: grey[100], color: theme.palette.primary.main }}
+        sx={{ backgroundColor: grey[900], color: grey[50] }}
       >
         Budgetly
       </Toolbar>
       <Divider />
       <List>
-        {drawerMenu.map(({ title, icon, href, children }, parentIndex) => (
-          <Box key={parentIndex}>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                to={href}
-                selected={location.pathname === href}
-              >
-                <ListItemIcon>{icon}</ListItemIcon>
-                <ListItemText primary={title} />
-              </ListItemButton>
-            </ListItem>
-            <Collapse in={location.pathname.startsWith(href)} unmountOnExit>
-              {children &&
-                children.map((child, childIndex) => (
-                  <ListItem key={`${parentIndex}_${childIndex}`} disablePadding>
+        {drawerMenu.map(
+          ({ title, active, icon, href, children }, parentIndex) => {
+            if (active) {
+              return (
+                <Box key={parentIndex}>
+                  <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
-                      to={child.href}
-                      selected={location.pathname === child.href}
-                      sx={{ pl: 9, color: grey[700] }}
-                      dense
+                      to={href}
+                      selected={location.pathname === href}
                     >
-                      <ListItemText primary={child.title} />
+                      <ListItemIcon>{icon}</ListItemIcon>
+                      <ListItemText primary={title} />
                     </ListItemButton>
                   </ListItem>
-                ))}
-              <Divider />
-            </Collapse>
-          </Box>
-        ))}
+                  <Collapse
+                    in={location.pathname.startsWith(href)}
+                    unmountOnExit
+                  >
+                    {children &&
+                      children.map((child, childIndex) => (
+                        <ListItem
+                          key={`${parentIndex}_${childIndex}`}
+                          disablePadding
+                        >
+                          <ListItemButton
+                            component={Link}
+                            to={child.href}
+                            selected={location.pathname === child.href}
+                            sx={{ pl: 9, color: grey[700] }}
+                            dense
+                          >
+                            <ListItemText primary={child.title} />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    <Divider />
+                  </Collapse>
+                </Box>
+              );
+            }
+          }
+        )}
       </List>
     </div>
   );
@@ -145,7 +160,7 @@ export default function Layout({}: Props) {
         elevation={0}
         position="fixed"
         sx={{
-          backgroundColor: grey[100],
+          backgroundColor: grey[900],
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
           borderBottom: "1px solid",
@@ -162,6 +177,14 @@ export default function Layout({}: Props) {
           >
             <MenuIcon />
           </IconButton>
+          <Typography sx={{ display: { sm: "none" } }}>Budgetly</Typography>
+          <Chip
+            component={Link}
+            to="/planners"
+            label={selectedPlanner?.name ?? "Select a planner"}
+            color="secondary"
+            sx={{ ml: "auto", cursor: "pointer" }}
+          />
         </Toolbar>
       </AppBar>
       <Box

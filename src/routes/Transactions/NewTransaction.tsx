@@ -12,13 +12,16 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
 import api from "../../api";
+import { useGlobalStore } from "../../main";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewTransaction({ onAdd }: Props) {
-  const [planners, setPlanners] = useState<Planner[]>([]);
+  const { selectedPlanner } = useGlobalStore((state) => ({
+    selectedPlanner: state.planner,
+  }));
   const [categories, setCategories] = useState<Category[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [values, setValues] = useState<Transaction>({
@@ -27,7 +30,7 @@ function NewTransaction({ onAdd }: Props) {
     receiver: "",
     amount: 0.0,
     date: new Date().toISOString(),
-    planner: null,
+    planner: selectedPlanner,
     category: null,
     contract: null,
   });
@@ -59,9 +62,9 @@ function NewTransaction({ onAdd }: Props) {
       receiver: values.receiver,
       amount: values.amount,
       date: values.date,
-      planner: values.planner?.id || null,
-      category: values.category?.id || null,
-      contract: values.contract?.id || null,
+      planner: selectedPlanner?.id ?? null,
+      category: values.category?.id ?? null,
+      contract: values.contract?.id ?? null,
     });
 
     setValues({
@@ -70,7 +73,7 @@ function NewTransaction({ onAdd }: Props) {
       receiver: "",
       amount: 0.0,
       date: new Date().toISOString(),
-      planner: null,
+      planner: selectedPlanner,
       category: null,
       contract: null,
     });
@@ -79,7 +82,6 @@ function NewTransaction({ onAdd }: Props) {
   };
 
   useEffect(() => {
-    api.planners.findAll().then((planners) => setPlanners(planners));
     api.categories.findAll().then((categories) => setCategories(categories));
     api.contracts.findAll().then((contracts) => setContracts(contracts));
   }, []);
@@ -135,19 +137,6 @@ function NewTransaction({ onAdd }: Props) {
           }}
           value={moment(values.date)}
           renderInput={(params) => <TextField id="date" {...params} />}
-        />
-      </FormControl>
-      <FormControl fullWidth sx={{ my: 2 }}>
-        <Autocomplete
-          id="planners"
-          value={values.planner as Planner}
-          options={planners}
-          getOptionLabel={(option) => option.name}
-          onChange={(event, newValue) => {
-            if (!newValue) return;
-            setValues({ ...values, planner: newValue });
-          }}
-          renderInput={(params) => <TextField {...params} label="Planner" />}
         />
       </FormControl>
       <FormControl fullWidth sx={{ my: 2 }}>

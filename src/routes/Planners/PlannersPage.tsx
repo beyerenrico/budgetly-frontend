@@ -1,3 +1,4 @@
+import React from "react";
 import { Link, useLoaderData } from "react-router-dom";
 import {
   Box,
@@ -15,6 +16,7 @@ import NewPlanner from "./NewPlanner";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useGlobalStore } from "../../main";
 
 type Props = {};
 
@@ -24,6 +26,10 @@ export async function plannersLoader() {
 }
 
 function Planners({}: Props) {
+  const { selectedPlanner, setSelectedPlanner } = useGlobalStore((state) => ({
+    selectedPlanner: state.planner,
+    setSelectedPlanner: state.setPlanner,
+  }));
   const { enqueueSnackbar } = useSnackbar();
   const { planners } = useLoaderData() as {
     planners: Planner[];
@@ -48,7 +54,9 @@ function Planners({}: Props) {
         display="flex"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+        }}
       >
         <Typography variant="h4">Planners</Typography>
 
@@ -63,7 +71,17 @@ function Planners({}: Props) {
           </Box>
         </SwipeableTemporaryDrawer>
       </Box>
-      <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
+      <Box
+        display="grid"
+        gap={2}
+        sx={{
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+        }}
+      >
         {data.length === 0 && (
           <Paper
             elevation={0}
@@ -100,11 +118,18 @@ function Planners({}: Props) {
               sx={{ display: "flex", justifyContent: "space-between", p: 2 }}
             >
               <Button
-                variant="contained"
-                component={Link}
-                to={`/planners/${planner.id}`}
+                variant={
+                  selectedPlanner?.id === planner?.id ? "contained" : "outlined"
+                }
+                onClick={() => {
+                  if (selectedPlanner?.id === planner?.id) {
+                    setSelectedPlanner(null);
+                    return;
+                  }
+                  setSelectedPlanner(planner);
+                }}
               >
-                View
+                {selectedPlanner?.id === planner?.id ? "Selected" : "Select"}
               </Button>
               <Button
                 variant="outlined"
