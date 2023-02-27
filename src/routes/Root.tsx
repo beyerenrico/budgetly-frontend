@@ -5,6 +5,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CategoryIcon from "@mui/icons-material/Category";
+import FolderIcon from "@mui/icons-material/Folder";
 
 import {
   AppBar,
@@ -34,12 +35,14 @@ interface Props {}
 
 export async function rootLoader() {
   const categories = await api.categories.findAll();
-  return { categories };
+  const contracts = await api.contracts.findAll();
+  return { categories, contracts };
 }
 
 export default function Layout({}: Props) {
-  const { categories } = useLoaderData() as {
+  const { categories, contracts } = useLoaderData() as {
     categories: Category[];
+    contracts: Contract[];
   };
 
   const { selectedPlanner } = useGlobalStore((state) => ({
@@ -63,6 +66,18 @@ export default function Layout({}: Props) {
       href: "/planners",
     },
     {
+      title: "Categories",
+      active: true,
+      icon: <CategoryIcon />,
+      href: "/categories",
+      // children: categories.map((category) => {
+      //   return {
+      //     title: category.name,
+      //     href: `/categories/${category.id}`,
+      //   };
+      // }),
+    },
+    {
       title: "Transactions",
       active: !!selectedPlanner,
       icon: <AccountBalanceIcon />,
@@ -79,16 +94,16 @@ export default function Layout({}: Props) {
       ],
     },
     {
-      title: "Categories",
-      active: true,
-      icon: <CategoryIcon />,
-      href: "/categories",
-      children: categories.map((category) => {
-        return {
-          title: category.name,
-          href: `/categories/${category.id}`,
-        };
-      }),
+      title: "Contracts",
+      active: !!selectedPlanner,
+      icon: <FolderIcon />,
+      href: "/contracts",
+      // children: contracts.map((contract) => {
+      //   return {
+      //     title: contract.title,
+      //     href: `/contracts/${contract.id}`,
+      //   };
+      // }),
     },
   ];
 

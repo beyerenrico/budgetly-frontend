@@ -8,6 +8,7 @@ import Categories, {
   categoriesLoader,
 } from "./routes/Categories/CategoriesPage";
 import Planners, { plannersLoader } from "./routes/Planners/PlannersPage";
+import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
 
 const ErrorBoundary = () => {
   return <div>404</div>;
@@ -35,6 +36,11 @@ const router = createBrowserRouter([
         path: "/categories",
         element: <Categories />,
         loader: categoriesLoader,
+      },
+      {
+        path: "/contracts",
+        element: <Contracts />,
+        loader: contractsLoader,
       },
       { path: "*", element: <ErrorBoundary /> },
     ],
