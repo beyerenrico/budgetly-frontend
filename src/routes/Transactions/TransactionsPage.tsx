@@ -68,7 +68,13 @@ function Transactions({}: Props) {
 
   const [stateContracts, setStateContracts] = useState<Contract[]>(contracts);
 
-  const [rowGroupingModel, setRowGroupingModel] = useState(["planner"]);
+  const [rowGroupingModel, setRowGroupingModel] = useState<string[]>([]);
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<
+    Record<string, boolean>
+  >({
+    month: false,
+    year: false,
+  });
 
   const [drawerOpenTransaction, setDrawerOpenTransaction] = useState(false);
   const [drawerOpenCategory, setDrawerOpenCategory] = useState(false);
@@ -100,27 +106,43 @@ function Transactions({}: Props) {
   const columns = useMemo<GridColumns<Transaction>>(
     () => [
       {
+        field: "amount",
+        headerName: "Amount",
+        minWidth: 150,
+        flex: 1,
+        editable: true,
+        type: "number",
+        groupable: false,
+        valueFormatter: ({ value }) => {
+          return currencyFormatter.format(value);
+        },
+      },
+      {
         field: "title",
         headerName: "Title",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
       },
       {
         field: "sender",
         headerName: "Sender",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
       },
       {
         field: "receiver",
         headerName: "Receiver",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
       },
       {
         field: "category",
         headerName: "Category",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
         type: "singleSelect",
         groupable: true,
@@ -129,14 +151,14 @@ function Transactions({}: Props) {
         },
         valueFormatter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value).name;
+            return JSON.parse(value)?.name;
           }
 
           return value?.name;
         },
         groupingValueGetter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value).name;
+            return JSON.parse(value)?.name;
           }
 
           return value?.name;
@@ -145,7 +167,8 @@ function Transactions({}: Props) {
       {
         field: "contract",
         headerName: "Contract",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
         type: "singleSelect",
         groupable: true,
@@ -170,14 +193,14 @@ function Transactions({}: Props) {
         },
         valueFormatter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value).title;
+            return JSON.parse(value)?.title;
           }
 
           return value?.title;
         },
         groupingValueGetter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value).title;
+            return JSON.parse(value)?.title;
           }
 
           return value?.title;
@@ -186,7 +209,8 @@ function Transactions({}: Props) {
       {
         field: "date",
         headerName: "Date",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: true,
         type: "date",
         valueFormatter: ({ value }) => {
@@ -196,7 +220,8 @@ function Transactions({}: Props) {
       {
         field: "year",
         headerName: "Year",
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: false,
         groupingValueGetter: ({ row }) => {
           return row.date ? moment(row.date).format("YYYY") : "";
@@ -224,24 +249,14 @@ function Transactions({}: Props) {
           { value: "November", label: "November" },
           { value: "December", label: "December" },
         ],
-        width: 150,
+        minWidth: 150,
+        flex: 1,
         editable: false,
         groupingValueGetter(params) {
           return params.row.date ? moment(params.row.date).format("MMMM") : "";
         },
         valueGetter: ({ row }) => {
           return row.date ? moment(row.date).format("MMMM") : "";
-        },
-      },
-      {
-        field: "amount",
-        headerName: "Amount",
-        width: 150,
-        editable: true,
-        type: "number",
-        groupable: false,
-        valueFormatter: ({ value }) => {
-          return currencyFormatter.format(value);
         },
       },
       {
@@ -254,6 +269,8 @@ function Transactions({}: Props) {
             icon={<DeleteIcon />}
             label="Delete"
             onClick={async () => {
+              if (!selectedPlanner) return;
+
               const rowElement = document.querySelector(
                 `[role="row"][data-id="${params.id}"]`
               );
@@ -262,7 +279,7 @@ function Transactions({}: Props) {
 
               await api.transactions.remove(params.id as string);
               await api.transactions
-                .findAll({ planner: { id: selectedPlanner?.id } })
+                .findAllByPlanner(selectedPlanner?.id)
                 .then((data) => {
                   setStateTransactions(data);
                 });
@@ -277,11 +294,11 @@ function Transactions({}: Props) {
   const initialState = useKeepGroupedColumnsHidden({
     apiRef,
     initialState: {
+      columns: {
+        columnVisibilityModel: columnVisibilityModel,
+      },
       rowGrouping: {
         model: rowGroupingModel,
-      },
-      pinnedColumns: {
-        right: ["amount"],
       },
       sorting: {
         sortModel: [
@@ -300,8 +317,10 @@ function Transactions({}: Props) {
   });
 
   const addHandlerTransaction = async () => {
+    if (!selectedPlanner) return;
+
     await api.transactions
-      .findAll({ planner: { id: selectedPlanner?.id } })
+      .findAllByPlanner(selectedPlanner?.id)
       .then((data) => {
         setStateTransactions(data);
       });
@@ -374,11 +393,9 @@ function Transactions({}: Props) {
   useEffect(() => {
     if (!selectedPlanner) return;
 
-    api.transactions
-      .findAll({ planner: { id: selectedPlanner?.id } })
-      .then((data) => {
-        setStateTransactions(data);
-      });
+    api.transactions.findAllByPlanner(selectedPlanner?.id).then((data) => {
+      setStateTransactions(data);
+    });
   }, [selectedPlanner]);
 
   useEffect(() => {
@@ -455,8 +472,8 @@ function Transactions({}: Props) {
       <Box
         sx={{
           height: {
-            xs: "calc(100vh - 320px)",
-            sm: "calc(100vh - 340px)",
+            xs: "calc(100vh - 205px)",
+            sm: "calc(100vh - 235px)",
             md: "calc(100vh - 200px)",
           },
           width: "100%",
@@ -464,7 +481,7 @@ function Transactions({}: Props) {
       >
         <Stack
           sx={{
-            flexDirection: { xs: "column", md: "row" },
+            flexDirection: { xs: "column", sm: "row" },
             gap: 1,
             width: "100%",
             mb: 1,
@@ -474,12 +491,18 @@ function Transactions({}: Props) {
         >
           <Chip
             label="Group by year"
-            onClick={() => setRowGroupingModel(["year"])}
+            onClick={() =>
+              setRowGroupingModel((prev) => (prev.length === 1 ? [] : ["year"]))
+            }
             variant={rowGroupingModelStr === "year" ? "filled" : "outlined"}
           />
           <Chip
             label="Group by year and month"
-            onClick={() => setRowGroupingModel(["year", "month"])}
+            onClick={() =>
+              setRowGroupingModel((prev) =>
+                prev.length === 2 ? [] : ["year", "month"]
+              )
+            }
             variant={
               rowGroupingModelStr === "year-month" ? "filled" : "outlined"
             }
@@ -488,6 +511,7 @@ function Transactions({}: Props) {
         <DataGridPremium
           checkboxSelection
           rowGroupingModel={rowGroupingModel}
+          columnVisibilityModel={columnVisibilityModel}
           density="compact"
           apiRef={apiRef}
           rows={stateTransactions}
@@ -502,6 +526,7 @@ function Transactions({}: Props) {
               : NoPlannerOverlay,
           }}
           onProcessRowUpdateError={(params) => {
+            console.log(params);
             enqueueSnackbar(params.error.message, { variant: "error" });
           }}
           processRowUpdate={async (newRow: Transaction) => {
@@ -520,8 +545,6 @@ function Transactions({}: Props) {
             }
 
             if (!newRow.planner) throw new Error("No planner");
-            if (!newRow.category) throw new Error("No category");
-            if (!newRow.contract) throw new Error("No contract");
 
             await api.transactions.update(newRow.id, {
               title: newRow.title,
@@ -530,8 +553,8 @@ function Transactions({}: Props) {
               date: newRow.date,
               amount: newRow.amount,
               planner: newRow.planner.id,
-              category: newRow.category.id,
-              contract: newRow.contract.id,
+              category: newRow.category?.id ?? null,
+              contract: newRow.contract?.id ?? null,
             });
 
             enqueueSnackbar("Transaction updated", { variant: "success" });
