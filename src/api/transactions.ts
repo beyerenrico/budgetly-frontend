@@ -1,33 +1,63 @@
-import http from "./common";
+import { request } from "./common";
 
 const findAll = async (): Promise<Transaction[]> => {
-  return (await http.get("/transactions")).data;
+  const response = await request("GET", "/transactions", "AUTHENTICATED");
+
+  return response.data as Transaction[];
 };
 
 const findAllByPlanner = async (plannerId: string): Promise<Transaction[]> => {
-  return (await http.get(`/transactions/planner/${plannerId}`)).data;
+  const response = await request(
+    "GET",
+    `/transactions/planner/${plannerId}`,
+    "AUTHENTICATED"
+  );
+
+  return response.data as Transaction[];
 };
 
 const findOne = async (id: string): Promise<Transaction> => {
-  return (await http.get(`/transactions/${id}`)).data;
+  const response = await request("GET", `/transactions/${id}`, "AUTHENTICATED");
+
+  return response.data as Transaction;
 };
 
 const create = async (data: TransactionCreate): Promise<Transaction> => {
-  return (await http.post("/transactions/", data)).data;
+  const response = await request<TransactionCreate>(
+    "POST",
+    "/transactions",
+    "AUTHENTICATED",
+    data
+  );
+
+  return response.data as Transaction;
 };
 
 const update = async (
   id: string,
   data: TransactionUpdate
 ): Promise<UpdateResponse> => {
-  return await http.put(`transactions/${id}`, data);
+  const response = await request<TransactionCreate>(
+    "PUT",
+    `/transactions/${id}`,
+    "AUTHENTICATED",
+    data
+  );
+
+  return response as unknown as UpdateResponse;
 };
 
 const remove = async (id: string): Promise<DeleteResponse> => {
-  return await http.delete(`/transactions/${id}`);
+  const response = await request(
+    "DELETE",
+    `/transactions/${id}`,
+    "AUTHENTICATED"
+  );
+
+  return response as unknown as DeleteResponse;
 };
 
-const TransationService = {
+const TransactionService = {
   findAll,
   findAllByPlanner,
   findOne,
@@ -36,4 +66,4 @@ const TransationService = {
   remove,
 };
 
-export default TransationService;
+export default TransactionService;

@@ -12,14 +12,14 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
 import api from "../../api";
-import { useGlobalStore } from "../../main";
+import { useSelectedPlannerStore } from "../../stores";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewTransaction({ onAdd }: Props) {
-  const { selectedPlanner } = useGlobalStore((state) => ({
+  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
     selectedPlanner: state.planner,
   }));
   const [categories, setCategories] = useState<Category[]>([]);

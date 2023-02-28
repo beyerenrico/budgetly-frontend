@@ -1,5 +1,11 @@
-import { createBrowserRouter } from "react-router-dom";
-import Layout, { rootLoader } from "./routes/Root";
+import {
+  createBrowserRouter,
+  Navigate,
+  redirect,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import Root from "./routes/Root";
 import Home, { homeLoader } from "./routes/Dashboard/Home";
 import Transactions, {
   transactionsLoader,
@@ -9,40 +15,78 @@ import Categories, {
 } from "./routes/Categories/CategoriesPage";
 import Planners, { plannersLoader } from "./routes/Planners/PlannersPage";
 import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
-
-const ErrorBoundary = () => {
-  return <div>404</div>;
-};
+import SignUpPage from "./routes/SignUp/SignUpPage";
+import SignInPage from "./routes/SignIn/SignInPage";
+import { useTokenStore } from "./stores";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
-    loader: rootLoader,
-    errorElement: <ErrorBoundary />,
+    element: <Root />,
+    loader: () => {
+      const { accessToken } = useTokenStore.getState().tokens;
+
+      if (!accessToken) {
+        return redirect("/auth/sign-in");
+      }
+
+      return null;
+    },
     children: [
-      { path: "/", element: <Home />, loader: homeLoader },
       {
-        path: "/planners",
+        path: "/",
+        element: <Home />,
+        loader: homeLoader,
+      },
+      {
+        path: "planners",
         element: <Planners />,
         loader: plannersLoader,
       },
       {
-        path: "/transactions",
+        path: "transactions",
         element: <Transactions />,
         loader: transactionsLoader,
       },
       {
-        path: "/categories",
+        path: "categories",
         element: <Categories />,
         loader: categoriesLoader,
       },
       {
-        path: "/contracts",
+        path: "contracts",
         element: <Contracts />,
         loader: contractsLoader,
       },
-      { path: "*", element: <ErrorBoundary /> },
+      { path: "*" },
+    ],
+  },
+  {
+    path: "/auth",
+    loader: () => {
+      const { accessToken } = useTokenStore.getState().tokens;
+
+      if (accessToken) {
+        return redirect("/");
+      }
+
+      return null;
+    },
+    children: [
+      {
+        path: "sign-up",
+        element: <SignUpPage />,
+      },
+      {
+        path: "sign-in",
+        element: <SignInPage />,
+      },
+      {
+        path: "*",
+        loader: () => {
+          return redirect("/auth/sign-in");
+        },
+      },
     ],
   },
 ]);

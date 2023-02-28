@@ -13,3 +13,17 @@ export const useSelectedPlannerStore = create<SelectedPlannerStoreState>()(
   )
 );
 
+export const useTokenStore = create<TokenStoreState>()(
+  persist(
+    (set) => ({
+      tokens: {
+        accessToken: "",
+        refreshToken: "",
+      },
+      setTokens: (tokens) => set({ tokens }),
+    }),
+    {
+      name: "tokens",
+    }
+  )
+);

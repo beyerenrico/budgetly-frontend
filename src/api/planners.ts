@@ -1,26 +1,46 @@
-import http from "./common";
+import { request } from "./common";
 
 const findAll = async (): Promise<Planner[]> => {
-  return (await http.get("/planners")).data;
+  const response = await request("GET", "/planners", "AUTHENTICATED");
+
+  return response.data as Planner[];
 };
 
 const findOne = async (id: string): Promise<Planner> => {
-  return (await http.get(`/planners/${id}`)).data;
+  const response = await request("GET", `/planners/${id}`, "AUTHENTICATED");
+
+  return response.data as Planner;
 };
 
 const create = async (data: PlannerCreate): Promise<Planner> => {
-  return (await http.post("/planners/", data)).data;
+  const response = await request<PlannerCreate>(
+    "POST",
+    "/planners",
+    "AUTHENTICATED",
+    data
+  );
+
+  return response.data as Planner;
 };
 
 const update = async (
   id: string,
   data: PlannerUpdate
 ): Promise<UpdateResponse> => {
-  return await http.put(`/planners/${id}`, data);
+  const response = await request<PlannerCreate>(
+    "PUT",
+    `/planners/${id}`,
+    "AUTHENTICATED",
+    data
+  );
+
+  return response as unknown as UpdateResponse;
 };
 
 const remove = async (id: string): Promise<DeleteResponse> => {
-  return await http.delete(`/planners/${id}`);
+  const response = await request("DELETE", `/planners/${id}`, "AUTHENTICATED");
+
+  return response as unknown as DeleteResponse;
 };
 
 const PlannerService = { findAll, findOne, create, update, remove };

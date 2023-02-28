@@ -7,14 +7,14 @@ import {
   Typography,
 } from "@mui/material";
 import api from "../../api";
-import { useGlobalStore } from "../../main";
+import { useSelectedPlannerStore } from "../../stores";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewContract({ onAdd }: Props) {
-  const { selectedPlanner } = useGlobalStore((state) => ({
+  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
     selectedPlanner: state.planner,
   }));
   const [values, setValues] = useState<ContractCreate>({
