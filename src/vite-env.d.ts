@@ -86,7 +86,7 @@ interface DeleteResponse {
   affected?: number;
 }
 
-interface GlobalStoreState {
+interface SelectedPlannerStoreState {
   planner: Planner | null;
   setPlanner: (planner: Planner | null) => void;
 }
