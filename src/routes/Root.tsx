@@ -10,6 +10,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import {
   AppBar,
   Box,
+  Button,
   Chip,
   Collapse,
   CssBaseline,
@@ -24,149 +25,49 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { Link, Outlet, useLoaderData, useLocation } from "react-router-dom";
+import {
+  Link,
+  Location,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { grey } from "@mui/material/colors";
-import api from "../api";
-import { useGlobalStore } from "../main";
+import { useSelectedPlannerStore, useTokenStore } from "../stores";
+import { useSnackbar } from "notistack";
 
 const drawerWidth = 240;
 
 interface Props {}
 
-export async function rootLoader() {
-  const categories = await api.categories.findAll();
-  const contracts = await api.contracts.findAll();
-  return { categories, contracts };
-}
-
-export default function Layout({}: Props) {
-  const { categories, contracts } = useLoaderData() as {
-    categories: Category[];
-    contracts: Contract[];
-  };
-
-  const { selectedPlanner } = useGlobalStore((state) => ({
-    selectedPlanner: state.planner,
-  }));
-
+export default function Root({}: Props) {
+  const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
+  const navigation = useNavigate();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  const drawerMenu = [
-    {
-      title: "Dashboard",
-      active: true,
-      icon: <HomeIcon />,
-      href: "/",
-    },
-    {
-      title: "Planners",
-      active: true,
-      icon: <CalendarTodayIcon />,
-      href: "/planners",
-    },
-    {
-      title: "Categories",
-      active: true,
-      icon: <CategoryIcon />,
-      href: "/categories",
-      // children: categories.map((category) => {
-      //   return {
-      //     title: category.name,
-      //     href: `/categories/${category.id}`,
-      //   };
-      // }),
-    },
-    {
-      title: "Transactions",
-      active: !!selectedPlanner,
-      icon: <AccountBalanceIcon />,
-      href: "/transactions",
-      children: [
-        {
-          title: "Overview",
-          href: "/transactions",
-        },
-        {
-          title: "Monthly",
-          href: "/transactions/monthly",
-        },
-      ],
-    },
-    {
-      title: "Contracts",
-      active: !!selectedPlanner,
-      icon: <FolderIcon />,
-      href: "/contracts",
-      // children: contracts.map((contract) => {
-      //   return {
-      //     title: contract.title,
-      //     href: `/contracts/${contract.id}`,
-      //   };
-      // }),
-    },
-  ];
+  const { setTokens } = useTokenStore((state) => ({
+    setTokens: state.setTokens,
+  }));
+
+  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
+    selectedPlanner: state.planner,
+  }));
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const drawer = (
-    <div>
-      <Toolbar
-        variant="dense"
-        sx={{ backgroundColor: grey[900], color: grey[50] }}
-      >
-        Budgetly
-      </Toolbar>
-      <Divider />
-      <List>
-        {drawerMenu.map(
-          ({ title, active, icon, href, children }, parentIndex) => {
-            if (active) {
-              return (
-                <Box key={parentIndex}>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      component={Link}
-                      to={href}
-                      selected={location.pathname === href}
-                    >
-                      <ListItemIcon>{icon}</ListItemIcon>
-                      <ListItemText primary={title} />
-                    </ListItemButton>
-                  </ListItem>
-                  <Collapse
-                    in={location.pathname.startsWith(href)}
-                    unmountOnExit
-                  >
-                    {children &&
-                      children.map((child, childIndex) => (
-                        <ListItem
-                          key={`${parentIndex}_${childIndex}`}
-                          disablePadding
-                        >
-                          <ListItemButton
-                            component={Link}
-                            to={child.href}
-                            selected={location.pathname === child.href}
-                            sx={{ pl: 9, color: grey[700] }}
-                            dense
-                          >
-                            <ListItemText primary={child.title} />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    <Divider />
-                  </Collapse>
-                </Box>
-              );
-            }
-          }
-        )}
-      </List>
-    </div>
-  );
+  const handleLogout = () => {
+    setTokens({
+      accessToken: "",
+      refreshToken: "",
+    });
+    navigation("/auth/sign-in");
+    enqueueSnackbar("Successfully signed out", { variant: "success" });
+  };
+
+  const drawer = RootDrawer(createDrawerMenu(selectedPlanner), location);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -198,8 +99,16 @@ export default function Layout({}: Props) {
             to="/planners"
             label={selectedPlanner?.name ?? "Select a planner"}
             color="secondary"
-            sx={{ ml: "auto", cursor: "pointer" }}
+            sx={{ ml: "auto", mr: 2, cursor: "pointer" }}
           />
+          <Button
+            variant="contained"
+            color="info"
+            size="small"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
       <Box
@@ -269,4 +178,125 @@ export default function Layout({}: Props) {
       </Box>
     </Box>
   );
+}
+function RootDrawer(
+  drawerMenu: (
+    | {
+        title: string;
+        active: boolean;
+        icon: JSX.Element;
+        href: string;
+        children?: undefined;
+      }
+    | {
+        title: string;
+        active: boolean;
+        icon: JSX.Element;
+        href: string;
+        children: { title: string; href: string }[];
+      }
+  )[],
+  location: Location
+) {
+  return (
+    <div>
+      <Toolbar
+        variant="dense"
+        sx={{ backgroundColor: grey[900], color: grey[50] }}
+      >
+        Budgetly
+      </Toolbar>
+      <Divider />
+      <List>
+        {drawerMenu.map(
+          ({ title, active, icon, href, children }, parentIndex) => {
+            if (active) {
+              return (
+                <Box key={parentIndex}>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      to={href}
+                      selected={location.pathname === href}
+                    >
+                      <ListItemIcon>{icon}</ListItemIcon>
+                      <ListItemText primary={title} />
+                    </ListItemButton>
+                  </ListItem>
+                  <Collapse
+                    in={location.pathname.startsWith(href)}
+                    unmountOnExit
+                  >
+                    {children &&
+                      children.map((child, childIndex) => (
+                        <ListItem
+                          key={`${parentIndex}_${childIndex}`}
+                          disablePadding
+                        >
+                          <ListItemButton
+                            component={Link}
+                            to={child.href}
+                            selected={location.pathname === child.href}
+                            sx={{ pl: 9, color: grey[700] }}
+                            dense
+                          >
+                            <ListItemText primary={child.title} />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    <Divider />
+                  </Collapse>
+                </Box>
+              );
+            }
+          }
+        )}
+      </List>
+    </div>
+  );
+}
+
+function createDrawerMenu(selectedPlanner: Planner | null) {
+  return [
+    {
+      title: "Dashboard",
+      active: true,
+      icon: <HomeIcon />,
+      href: "/",
+    },
+    {
+      title: "Planners",
+      active: true,
+      icon: <CalendarTodayIcon />,
+      href: "/planners",
+    },
+    {
+      title: "Categories",
+      active: true,
+      icon: <CategoryIcon />,
+      href: "/categories",
+    },
+    {
+      title: "Transactions",
+      active: !!selectedPlanner,
+      icon: <AccountBalanceIcon />,
+      href: "/transactions",
+      children: [
+        {
+          title: "Overview",
+          href: "/transactions",
+        },
+        {
+          title: "Monthly",
+          href: "/transactions/monthly",
+        },
+      ],
+    },
+    {
+      title: "Contracts",
+      active: !!selectedPlanner,
+      icon: <FolderIcon />,
+      href: "/contracts",
+    },
+  ];
 }

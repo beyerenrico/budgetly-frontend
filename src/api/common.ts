@@ -1,8 +1,45 @@
 import axios from "axios";
+import { useTokenStore } from "../stores";
 
-export default axios.create({
-  baseURL: "http://localhost:3000",
-  headers: {
-    "Content-type": "application/json",
-  },
-});
+const request = async <T>(
+  method: string,
+  url: string,
+  headerType: "AUTHENTICATED" | "PUBLIC",
+  data?: T
+) => {
+  let headers;
+
+  const { accessToken } = useTokenStore.getState().tokens;
+
+  switch (headerType) {
+    case "AUTHENTICATED": {
+      headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+      break;
+    }
+    case "PUBLIC": {
+      headers = {
+        "Content-Type": "application/json",
+      };
+      break;
+    }
+    default: {
+      headers = {
+        "Content-Type": "application/json",
+      };
+      break;
+    }
+  }
+
+  return axios({
+    baseURL: "http://localhost:3000",
+    method,
+    url,
+    data,
+    headers,
+  });
+};
+
+export { request };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, redirect, useLoaderData } from "react-router-dom";
 import {
   Box,
   Button,
@@ -16,7 +16,7 @@ import NewPlanner from "./NewPlanner";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useGlobalStore } from "../../main";
+import { useSelectedPlannerStore } from "../../stores";
 
 type Props = {};
 
@@ -26,10 +26,12 @@ export async function plannersLoader() {
 }
 
 function Planners({}: Props) {
-  const { selectedPlanner, setSelectedPlanner } = useGlobalStore((state) => ({
-    selectedPlanner: state.planner,
-    setSelectedPlanner: state.setPlanner,
-  }));
+  const { selectedPlanner, setSelectedPlanner } = useSelectedPlannerStore(
+    (state) => ({
+      selectedPlanner: state.planner,
+      setSelectedPlanner: state.setPlanner,
+    })
+  );
   const { enqueueSnackbar } = useSnackbar();
   const { planners } = useLoaderData() as {
     planners: Planner[];

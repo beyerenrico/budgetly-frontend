@@ -86,9 +86,14 @@ interface DeleteResponse {
   affected?: number;
 }
 
-interface GlobalStoreState {
+interface SelectedPlannerStoreState {
   planner: Planner | null;
   setPlanner: (planner: Planner | null) => void;
+}
+
+interface TokenStoreState {
+  tokens: SuccessfullSignInResponse;
+  setTokens: (tokens: SuccessfullSignInResponse) => void;
 }
 
 interface Service<T> {
@@ -97,4 +102,25 @@ interface Service<T> {
   create: (data: T) => Promise<T>;
   update: (id: string) => Promise<UpdateResponse>;
   remove: (id: string) => Promise<DeleteResponse>;
+}
+
+interface SignUpData {
+  email: string;
+  password: string;
+}
+
+interface SignUpSchema {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface SignInData {
+  email: string;
+  password: string;
+}
+
+interface SuccessfullSignInResponse {
+  accessToken: string;
+  refreshToken: string;
 }

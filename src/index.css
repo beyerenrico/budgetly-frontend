@@ -22,6 +22,10 @@
   font-weight: 700;
 }
 
+body {
+  margin: 0;
+}
+
 * {
   font-family: "IBMPlexSans", sans-serif !important;
 }
