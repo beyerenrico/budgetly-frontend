@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { redirect, useLoaderData } from "react-router-dom";
 import {
   DataGridPremium,
   GridActionsCellItem,
   GridColumns,
-  GridNoRowsOverlay,
   GridToolbar,
   useGridApiRef,
   useKeepGroupedColumnsHidden,
@@ -19,18 +16,25 @@ import {
   Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import api from "../../api";
-import SwipeableTemporaryDrawer from "../../components/Drawer";
-import moment from "moment";
-import NewTransaction from "./NewTransaction";
-import NewCategory from "../Categories/NewCategory";
-import { useSnackbar } from "notistack";
-import NewContract from "../Contracts/NewContract";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CategoryIcon from "@mui/icons-material/Category";
 import FolderIcon from "@mui/icons-material/Folder";
-import { useSelectedPlannerStore } from "../../stores";
-import NoPlannerOverlay from "./NoPlannerOverlay";
+
+import { useEffect, useMemo, useState } from "react";
+
+import { useLoaderData, useNavigate } from "react-router-dom";
+
+import moment from "moment";
+
+import { useSnackbar } from "notistack";
+
+import api from "../../api";
+import { useActiveUserStore, useSelectedReportStore } from "../../stores";
+import NewCategory from "../Categories/NewCategory";
+import NewContract from "../Contracts/NewContract";
+import SwipeableTemporaryDrawer from "../../components/Drawer";
+
+import NewTransaction from "./NewTransaction";
 
 type Props = {};
 
@@ -40,28 +44,36 @@ const currencyFormatter = new Intl.NumberFormat("de-DE", {
 });
 
 export async function transactionsLoader() {
-  const planners = await api.planners.findAll();
+  const reports = await api.reports.findAll();
   const categories = await api.categories.findAll();
   const contracts = await api.contracts.findAll();
+  const transactions = await api.transactions.findAll();
 
-  return { planners, categories, contracts };
+  return { reports, categories, contracts, transactions };
 }
 
 function Transactions({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
   const apiRef = useGridApiRef();
-  const { planners, categories, contracts } = useLoaderData() as {
-    planners: Planner[];
+  const { reports, categories, contracts, transactions } = useLoaderData() as {
+    reports: Report[];
     categories: Category[];
     contracts: Contract[];
+    transactions: Transaction[];
   };
 
-  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
-    selectedPlanner: state.planner,
-    setSelectedPlanner: state.setPlanner,
+  const { activeUser } = useActiveUserStore((state) => ({
+    activeUser: state.activeUser,
   }));
 
-  const [stateTransactions, setStateTransactions] = useState<Transaction[]>([]);
+  const { selectedReport } = useSelectedReportStore((state) => ({
+    selectedReport: state.report,
+    setSelectedReport: state.setReport,
+  }));
+
+  const [stateTransactions, setStateTransactions] =
+    useState<Transaction[]>(transactions);
   const [stateCategories, setStateCategories] =
     useState<Category[]>(categories);
   const [stateContracts, setStateContracts] = useState<Contract[]>(contracts);
@@ -75,10 +87,10 @@ function Transactions({}: Props) {
   const [drawerOpenCategory, setDrawerOpenCategory] = useState(false);
   const [drawerOpenContract, setDrawerOpenContract] = useState(false);
 
-  const [plannerOptions] = useState(
-    planners.map((planner) => ({
-      value: JSON.stringify(planner),
-      label: planner.name,
+  const [reportOptions] = useState(
+    reports.map((report) => ({
+      value: JSON.stringify(report),
+      label: report.name,
     }))
   );
 
@@ -92,7 +104,7 @@ function Transactions({}: Props) {
   const [contractOptions, setContractOptions] = useState(
     stateContracts.map((contract) => ({
       value: JSON.stringify(contract),
-      label: contract.title,
+      label: contract.name,
     }))
   );
 
@@ -101,9 +113,9 @@ function Transactions({}: Props) {
   const columns = createColumns(
     categoryOptions,
     contractOptions,
-    selectedPlanner,
+    selectedReport,
     setStateTransactions,
-    plannerOptions
+    reportOptions
   );
 
   const initialState = useKeepGroupedColumnsHidden({
@@ -132,13 +144,9 @@ function Transactions({}: Props) {
   });
 
   const addHandlerTransaction = async () => {
-    if (!selectedPlanner) return;
-
-    await api.transactions
-      .findAllByPlanner(selectedPlanner?.id)
-      .then((data) => {
-        setStateTransactions(data);
-      });
+    await api.transactions.findAll().then((data) => {
+      setStateTransactions(data);
+    });
     setDrawerOpenTransaction(false);
     enqueueSnackbar("Transaction added", { variant: "success" });
   };
@@ -163,7 +171,7 @@ function Transactions({}: Props) {
       setContractOptions(
         data.contracts.map((contract) => ({
           value: JSON.stringify(contract),
-          label: contract.title,
+          label: contract.name,
         }))
       );
     });
@@ -172,7 +180,7 @@ function Transactions({}: Props) {
   };
 
   const actions: {
-    title: string;
+    name: string;
     open: boolean;
     variant: "contained" | "outlined";
     setOpen: (open: boolean) => void;
@@ -191,12 +199,8 @@ function Transactions({}: Props) {
   );
 
   useEffect(() => {
-    if (!selectedPlanner) return;
-
-    api.transactions.findAllByPlanner(selectedPlanner?.id).then((data) => {
-      setStateTransactions(data);
-    });
-  }, [selectedPlanner]);
+    setStateTransactions(transactions);
+  }, [transactions]);
 
   useEffect(() => {
     setStateCategories(categories);
@@ -218,56 +222,50 @@ function Transactions({}: Props) {
       >
         <Typography variant="h4">Transactions</Typography>
 
-        {selectedPlanner && (
-          <Box gap={1} sx={{ display: { xs: "none", md: "flex" } }}>
-            {actions.map(
-              ({ title, open, variant, setOpen, component }, index) => (
-                <SwipeableTemporaryDrawer
-                  key={index}
-                  buttonLabel={title}
-                  buttonVariant={variant}
-                  anchor="right"
-                  open={open}
-                  onToggle={(open) => setOpen(open)}
-                >
-                  <Box
-                    padding={3}
-                    width={350}
-                    display="flex"
-                    flexDirection="column"
-                  >
-                    {component}
-                  </Box>
-                </SwipeableTemporaryDrawer>
-              )
-            )}
-          </Box>
-        )}
-      </Box>
-      {selectedPlanner && (
-        <SpeedDial
-          ariaLabel="SpeedDial basic example"
-          sx={{
-            display: { md: "none" },
-            position: "absolute",
-            bottom: 16,
-            left: {
-              xs: 16,
-              sm: "calc(240px + 24px)",
-            },
-          }}
-          icon={<SpeedDialIcon />}
-        >
-          {actions.map(({ title, icon, setOpen }) => (
-            <SpeedDialAction
-              key={title}
-              icon={icon}
-              tooltipTitle={title}
-              onClick={() => setOpen(true)}
-            />
+        <Box gap={1} sx={{ display: { xs: "none", md: "flex" } }}>
+          {actions.map(({ name, open, variant, setOpen, component }, index) => (
+            <SwipeableTemporaryDrawer
+              key={index}
+              buttonLabel={name}
+              buttonVariant={variant}
+              anchor="right"
+              open={open}
+              onToggle={(open) => setOpen(open)}
+            >
+              <Box
+                padding={3}
+                width={350}
+                display="flex"
+                flexDirection="column"
+              >
+                {component}
+              </Box>
+            </SwipeableTemporaryDrawer>
           ))}
-        </SpeedDial>
-      )}
+        </Box>
+      </Box>
+      <SpeedDial
+        ariaLabel="Add new transaction, category or contract"
+        sx={{
+          display: { md: "none" },
+          position: "absolute",
+          bottom: 16,
+          left: {
+            xs: 16,
+            sm: "calc(240px + 24px)",
+          },
+        }}
+        icon={<SpeedDialIcon />}
+      >
+        {actions.map(({ name, icon, setOpen }) => (
+          <SpeedDialAction
+            key={name}
+            icon={icon}
+            tooltipTitle={name}
+            onClick={() => setOpen(true)}
+          />
+        ))}
+      </SpeedDial>
 
       <Box
         sx={{
@@ -321,19 +319,22 @@ function Transactions({}: Props) {
           editMode="row"
           components={{
             Toolbar: GridToolbar,
-            NoRowsOverlay: selectedPlanner
-              ? GridNoRowsOverlay
-              : NoPlannerOverlay,
           }}
           onProcessRowUpdateError={(params) => {
             console.log(params);
             enqueueSnackbar(params.error.message, { variant: "error" });
           }}
           processRowUpdate={async (newRow: Transaction) => {
+            if (!activeUser) {
+              enqueueSnackbar("Not logged in", { variant: "error" });
+              navigate("/auth/sign-in");
+              throw new Error("Not logged in");
+            }
+
             if (!newRow.id) throw new Error("No ID");
 
-            if (typeof newRow.planner === "string") {
-              newRow.planner = JSON.parse(newRow.planner) as Planner;
+            if (typeof newRow.report === "string") {
+              newRow.report = JSON.parse(newRow.report) as Report;
             }
 
             if (typeof newRow.category === "string") {
@@ -344,22 +345,20 @@ function Transactions({}: Props) {
               newRow.contract = JSON.parse(newRow.contract) as Contract;
             }
 
-            if (!newRow.planner) throw new Error("No planner");
-
             await api.transactions.update(newRow.id, {
-              title: newRow.title,
+              name: newRow.name,
               sender: newRow.sender,
               receiver: newRow.receiver,
               date: newRow.date,
               amount: newRow.amount,
-              planner: newRow.planner.id,
-              category: newRow.category?.id ?? null,
-              contract: newRow.contract?.id ?? null,
+              user: activeUser.sub,
+              category: newRow.category?.id,
+              contract: newRow.contract?.id,
             });
 
             enqueueSnackbar("Transaction updated", { variant: "success" });
 
-            newRow.planner = JSON.stringify(newRow.planner);
+            newRow.report = JSON.stringify(newRow.report);
             newRow.category = JSON.stringify(newRow.category);
             newRow.contract = JSON.stringify(newRow.contract);
 
@@ -384,7 +383,7 @@ function createActions(
   setDrawerOpenContract: (open: boolean) => void,
   addHandlerContract: () => Promise<void>
 ): {
-  title: string;
+  name: string;
   open: boolean;
   variant: "contained" | "outlined";
   setOpen: (open: boolean) => void;
@@ -393,7 +392,7 @@ function createActions(
 }[] {
   return [
     {
-      title: "Add Transaction",
+      name: "Add Transaction",
       open: drawerOpenTransaction,
       variant: "contained",
       setOpen: setDrawerOpenTransaction,
@@ -401,7 +400,7 @@ function createActions(
       component: <NewTransaction onAdd={addHandlerTransaction} />,
     },
     {
-      title: "Add Category",
+      name: "Add Category",
       open: drawerOpenCategory,
       variant: "outlined",
       setOpen: setDrawerOpenCategory,
@@ -409,7 +408,7 @@ function createActions(
       component: <NewCategory onAdd={addHandlerCategory} />,
     },
     {
-      title: "Add Contract",
+      name: "Add Contract",
       open: drawerOpenContract,
       variant: "outlined",
       setOpen: setDrawerOpenContract,
@@ -422,9 +421,9 @@ function createActions(
 function createColumns(
   categoryOptions: { value: string; label: string }[],
   contractOptions: { value: string; label: string }[],
-  selectedPlanner: Planner | null,
+  selectedReport: Report | null,
   setStateTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>,
-  plannerOptions: { value: string; label: string }[]
+  reportOptions: { value: string; label: string }[]
 ) {
   return useMemo<GridColumns<Transaction>>(
     () => [
@@ -441,8 +440,8 @@ function createColumns(
         },
       },
       {
-        field: "title",
-        headerName: "Title",
+        field: "name",
+        headerName: "Name",
         minWidth: 150,
         flex: 1,
         editable: true,
@@ -469,9 +468,7 @@ function createColumns(
         editable: true,
         type: "singleSelect",
         groupable: true,
-        valueOptions: () => {
-          return categoryOptions;
-        },
+        valueOptions: categoryOptions,
         valueFormatter: ({ value }) => {
           if (typeof value === "string") {
             return JSON.parse(value)?.name;
@@ -495,38 +492,20 @@ function createColumns(
         editable: true,
         type: "singleSelect",
         groupable: true,
-        valueOptions: ({ row }) => {
-          const filteredOptions = contractOptions.filter((contract) => {
-            const contractValue: Contract = JSON.parse(contract.value);
-
-            if (typeof contractValue.planner === "string") {
-              contractValue.planner = JSON.parse(
-                contractValue.planner
-              ) as Planner;
-            }
-
-            if (typeof row?.planner === "string") {
-              row.planner = JSON.parse(row.planner) as Planner;
-            }
-
-            return contractValue.planner?.id === row?.planner?.id;
-          });
-
-          return filteredOptions;
-        },
+        valueOptions: contractOptions,
         valueFormatter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value)?.title;
+            return JSON.parse(value)?.name;
           }
 
-          return value?.title;
+          return value?.name;
         },
         groupingValueGetter: ({ value }) => {
           if (typeof value === "string") {
-            return JSON.parse(value)?.title;
+            return JSON.parse(value)?.name;
           }
 
-          return value?.title;
+          return value?.name;
         },
       },
       {
@@ -592,7 +571,7 @@ function createColumns(
             icon={<DeleteIcon />}
             label="Delete"
             onClick={async () => {
-              if (!selectedPlanner) return;
+              if (!selectedReport) return;
 
               const rowElement = document.querySelector(
                 `[role="row"][data-id="${params.id}"]`
@@ -602,7 +581,7 @@ function createColumns(
 
               await api.transactions.remove(params.id as string);
               await api.transactions
-                .findAllByPlanner(selectedPlanner?.id)
+                .findAllByReport(selectedReport?.id)
                 .then((data) => {
                   setStateTransactions(data);
                 });
@@ -611,6 +590,6 @@ function createColumns(
         ],
       },
     ],
-    [plannerOptions, categoryOptions, contractOptions]
+    [reportOptions, categoryOptions, contractOptions]
   );
 }

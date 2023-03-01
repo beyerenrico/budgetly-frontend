@@ -1,5 +1,4 @@
-import React from "react";
-import { Link, redirect, useLoaderData } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import {
   Box,
   Button,
@@ -12,43 +11,36 @@ import {
 import api from "../../api";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
 import { useEffect, useState } from "react";
-import NewPlanner from "./NewPlanner";
+import NewReport from "./NewReport";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useSelectedPlannerStore } from "../../stores";
 
 type Props = {};
 
-export async function plannersLoader() {
-  const planners = await api.planners.findAll();
-  return { planners };
+export async function reportsLoader() {
+  const reports = await api.reports.findAll();
+  return { reports };
 }
 
-function Planners({}: Props) {
-  const { selectedPlanner, setSelectedPlanner } = useSelectedPlannerStore(
-    (state) => ({
-      selectedPlanner: state.planner,
-      setSelectedPlanner: state.setPlanner,
-    })
-  );
+function Reports({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
-  const { planners } = useLoaderData() as {
-    planners: Planner[];
+  const { reports } = useLoaderData() as {
+    reports: Report[];
   };
 
-  const [data, setData] = useState<Planner[]>([]);
+  const [data, setData] = useState<Report[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const addHandler = async () => {
-    await plannersLoader().then((data) => setData(data.planners));
-    enqueueSnackbar("Planner added", { variant: "success" });
+    await reportsLoader().then((data) => setData(data.reports));
+    enqueueSnackbar("Report added", { variant: "success" });
     setDrawerOpen(false);
   };
 
   useEffect(() => {
-    setData(planners);
-  }, [planners]);
+    setData(reports);
+  }, [reports]);
 
   return (
     <>
@@ -60,7 +52,7 @@ function Planners({}: Props) {
           mb: 2,
         }}
       >
-        <Typography variant="h4">Planners</Typography>
+        <Typography variant="h4">Reports</Typography>
 
         <SwipeableTemporaryDrawer
           buttonLabel="Add"
@@ -69,7 +61,7 @@ function Planners({}: Props) {
           onToggle={(open) => setDrawerOpen(open)}
         >
           <Box padding={3} width={350} display="flex" flexDirection="column">
-            <NewPlanner onAdd={addHandler} />
+            <NewReport onAdd={addHandler} />
           </Box>
         </SwipeableTemporaryDrawer>
       </Box>
@@ -97,10 +89,10 @@ function Planners({}: Props) {
               gridColumn: "1 / 4",
             }}
           >
-            <Typography variant="h6">No planners found</Typography>
+            <Typography variant="h6">No reports found</Typography>
           </Paper>
         )}
-        {data.map((planner, index) => (
+        {data.map((report, index) => (
           <Card
             elevation={0}
             key={index}
@@ -113,43 +105,36 @@ function Planners({}: Props) {
             }}
           >
             <CardContent>
-              <Typography variant="h6">{planner.name}</Typography>
-              <Typography paragraph>{planner.description}</Typography>
+              <Typography variant="h6">{report.name}</Typography>
+              <Typography paragraph>{report.description}</Typography>
             </CardContent>
             <CardActions
               sx={{ display: "flex", justifyContent: "space-between", p: 2 }}
             >
               <Button
-                variant={
-                  selectedPlanner?.id === planner?.id ? "contained" : "outlined"
-                }
-                onClick={() => {
-                  if (selectedPlanner?.id === planner?.id) {
-                    setSelectedPlanner(null);
-                    return;
-                  }
-                  setSelectedPlanner(planner);
-                }}
+                variant="contained"
+                component={Link}
+                to={`/reports/${report.id}`}
               >
-                {selectedPlanner?.id === planner?.id ? "Selected" : "Select"}
+                View
               </Button>
               <Button
                 variant="outlined"
                 color="error"
                 onClick={async () => {
                   try {
-                    await api.planners.remove(planner.id);
+                    await api.reports.remove(report.id);
                   } catch (error) {
-                    enqueueSnackbar("This planner contains transactions", {
+                    enqueueSnackbar("This report contains transactions", {
                       variant: "error",
                     });
                     return;
                   }
 
-                  enqueueSnackbar("Planner deleted", {
+                  enqueueSnackbar("Report deleted", {
                     variant: "success",
                   });
-                  setData(data.filter((c) => c.id !== planner.id));
+                  setData(data.filter((c) => c.id !== report.id));
                 }}
               >
                 <DeleteIcon />
@@ -162,4 +147,4 @@ function Planners({}: Props) {
   );
 }
 
-export default Planners;
+export default Reports;

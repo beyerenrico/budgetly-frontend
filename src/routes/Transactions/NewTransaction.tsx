@@ -12,27 +12,28 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
 import api from "../../api";
-import { useSelectedPlannerStore } from "../../stores";
+import { useActiveUserStore } from "../../stores";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewTransaction({ onAdd }: Props) {
-  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
-    selectedPlanner: state.planner,
+  const { activeUser } = useActiveUserStore((state) => ({
+    activeUser: state.activeUser,
   }));
   const [categories, setCategories] = useState<Category[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [values, setValues] = useState<Transaction>({
-    title: "",
+    name: "",
     sender: "",
     receiver: "",
     amount: 0.0,
     date: new Date().toISOString(),
-    planner: selectedPlanner,
-    category: null,
-    contract: null,
+    report: undefined,
+    category: undefined,
+    contract: undefined,
+    user: activeUser?.sub ?? "",
   });
 
   const handleChange =
@@ -44,8 +45,8 @@ function NewTransaction({ onAdd }: Props) {
   const handleSubmit = async (event: React.MouseEvent) => {
     event.preventDefault();
 
-    if (typeof values.planner === "string") {
-      values.planner = JSON.parse(values.planner) as Planner;
+    if (typeof values.report === "string") {
+      values.report = JSON.parse(values.report) as Report;
     }
 
     if (typeof values.category === "string") {
@@ -56,26 +57,18 @@ function NewTransaction({ onAdd }: Props) {
       values.contract = JSON.parse(values.contract) as Contract;
     }
 
-    await api.transactions.create({
-      title: values.title,
-      sender: values.sender,
-      receiver: values.receiver,
-      amount: values.amount,
-      date: values.date,
-      planner: selectedPlanner?.id ?? null,
-      category: values.category?.id ?? null,
-      contract: values.contract?.id ?? null,
-    });
+    await api.transactions.create(values);
 
     setValues({
-      title: "",
+      ...values,
+      name: "",
       sender: "",
       receiver: "",
       amount: 0.0,
       date: new Date().toISOString(),
-      planner: selectedPlanner,
-      category: null,
-      contract: null,
+      report: undefined,
+      category: undefined,
+      contract: undefined,
     });
 
     onAdd();
@@ -92,12 +85,12 @@ function NewTransaction({ onAdd }: Props) {
         Add Transaction
       </Typography>
       <FormControl fullWidth sx={{ my: 2 }}>
-        <InputLabel htmlFor="title">Title</InputLabel>
+        <InputLabel htmlFor="name">Name</InputLabel>
         <OutlinedInput
-          value={values.title}
-          onChange={handleChange("title")}
-          id="title"
-          label="Title"
+          value={values.name}
+          onChange={handleChange("name")}
+          id="name"
+          label="Name"
         />
       </FormControl>
       <FormControl fullWidth sx={{ my: 2 }}>
@@ -157,7 +150,7 @@ function NewTransaction({ onAdd }: Props) {
           id="contracts"
           value={values.contract as Contract}
           options={contracts}
-          getOptionLabel={(option) => option.title}
+          getOptionLabel={(option) => option.name}
           onChange={(event, newValue) => {
             if (!newValue) return;
             setValues({ ...values, contract: newValue });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, redirect, useLoaderData } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import {
   Box,
   Button,
@@ -16,7 +16,6 @@ import SwipeableTemporaryDrawer from "../../components/Drawer";
 import NewContract from "./NewContract";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from "notistack";
-import { useSelectedPlannerStore } from "../../stores";
 
 type Props = {};
 
@@ -27,10 +26,9 @@ export async function contractsLoader() {
 
 function Contracts({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
-
-  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
-    selectedPlanner: state.planner,
-  }));
+  const { contracts } = useLoaderData() as {
+    contracts: Category[];
+  };
 
   const [data, setData] = useState<Contract[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -41,13 +39,8 @@ function Contracts({}: Props) {
   };
 
   useEffect(() => {
-    if (!selectedPlanner) return;
-
-    api.contracts.findAllByPlanner(selectedPlanner?.id).then((data) => {
-      setData(data);
-    });
-  }, [selectedPlanner]);
-
+    setData(contracts);
+  }, [contracts]);
   return (
     <>
       <Box
@@ -92,7 +85,7 @@ function Contracts({}: Props) {
               height: 400,
               border: "1px solid",
               borderColor: grey[300],
-              gridColumn: "1 / 4",
+              gridColumn: "1 / 5",
             }}
           >
             <Typography variant="h6">No contracts found</Typography>
@@ -105,7 +98,7 @@ function Contracts({}: Props) {
             sx={{ border: "1px solid", borderColor: grey[300] }}
           >
             <CardContent>
-              <Typography variant="h6">{contract.title}</Typography>
+              <Typography variant="h6">{contract.name}</Typography>
             </CardContent>
             <CardActions
               sx={{ display: "flex", justifyContent: "space-between", p: 2 }}

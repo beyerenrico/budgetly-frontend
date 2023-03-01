@@ -79,12 +79,12 @@ function SignInPage({}: Props) {
       justifyContent="center"
       alignItems="center"
       flexDirection="column"
-      bgcolor={grey[200]}
+      bgcolor={grey[50]}
       sx={{ height: "100vh", width: "100vw" }}
     >
-      <Box textAlign="center">
-        <Typography variant="h4">Sign up for a new account</Typography>
-        <Typography paragraph>
+      <Box textAlign="center" mb={2}>
+        <Typography variant="h1">Sign up for a new account</Typography>
+        <Typography variant="h6">
           Or <Link to="/auth/sign-in">login to an existing one</Link>
         </Typography>
       </Box>
@@ -114,8 +114,13 @@ function SignInPage({}: Props) {
                     onClick={handleClickShowPassword}
                     onMouseDown={handleMouseDownPassword}
                     edge="end"
+                    size="small"
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? (
+                      <VisibilityOff fontSize="small" />
+                    ) : (
+                      <Visibility fontSize="small" />
+                    )}
                   </IconButton>
                 </InputAdornment>
               }
@@ -136,8 +141,13 @@ function SignInPage({}: Props) {
                     onClick={handleClickShowConfirmPassword}
                     onMouseDown={handleMouseDownPassword}
                     edge="end"
+                    size="small"
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? (
+                      <VisibilityOff fontSize="small" />
+                    ) : (
+                      <Visibility fontSize="small" />
+                    )}
                   </IconButton>
                 </InputAdornment>
               }
@@ -149,7 +159,7 @@ function SignInPage({}: Props) {
             variant="contained"
             fullWidth
             size="large"
-            sx={{ mb: 4, py: 2 }}
+            sx={{ mb: 4 }}
             type="submit"
           >
             Sign up

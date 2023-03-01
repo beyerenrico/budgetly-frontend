@@ -10,13 +10,19 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import api from "../../api";
-import { useTokenStore } from "../../stores";
+
+import { useState } from "react";
+
+import { Link, useNavigate } from "react-router-dom";
+
 import { useSnackbar } from "notistack";
+
+import api from "../../api";
+import { useTokenStore, useActiveUserStore } from "../../stores";
+
+import jwt_decode from "jwt-decode";
 
 type Props = {};
 
@@ -27,9 +33,15 @@ function SignInPage({}: Props) {
     email: "",
     password: "",
   });
+
   const [showPassword, setShowPassword] = useState(false);
+
   const { setTokens } = useTokenStore((state) => ({
     setTokens: state.setTokens,
+  }));
+
+  const { setActiveUser } = useActiveUserStore((state) => ({
+    setActiveUser: state.setActiveUser,
   }));
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -53,6 +65,8 @@ function SignInPage({}: Props) {
 
     await api.authentication.signIn(values).then((res) => {
       setTokens(res);
+      const { sub, email } = jwt_decode(res.accessToken) as ActiveUserData;
+      setActiveUser({ sub, email });
       navigation("/");
       enqueueSnackbar("Successfully signed in", { variant: "success" });
     });
@@ -64,12 +78,12 @@ function SignInPage({}: Props) {
       justifyContent="center"
       alignItems="center"
       flexDirection="column"
-      bgcolor={grey[200]}
+      bgcolor={grey[50]}
       sx={{ height: "100vh", width: "100vw" }}
     >
-      <Box textAlign="center">
-        <Typography variant="h4">Sign in to your account</Typography>
-        <Typography paragraph>
+      <Box textAlign="center" mb={2}>
+        <Typography variant="h1">Sign in to your account</Typography>
+        <Typography variant="h6">
           Or <Link to="/auth/sign-up">create a new one</Link>
         </Typography>
       </Box>
@@ -99,8 +113,13 @@ function SignInPage({}: Props) {
                     onClick={handleClickShowPassword}
                     onMouseDown={handleMouseDownPassword}
                     edge="end"
+                    size="small"
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? (
+                      <VisibilityOff fontSize="small" />
+                    ) : (
+                      <Visibility fontSize="small" />
+                    )}
                   </IconButton>
                 </InputAdornment>
               }
@@ -112,7 +131,7 @@ function SignInPage({}: Props) {
             variant="contained"
             fullWidth
             size="large"
-            sx={{ mb: 4, py: 2 }}
+            sx={{ mb: 4 }}
             type="submit"
           >
             Sign in

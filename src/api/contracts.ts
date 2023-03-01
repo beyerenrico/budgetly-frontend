@@ -6,16 +6,6 @@ const findAll = async (): Promise<Contract[]> => {
   return response.data as Contract[];
 };
 
-const findAllByPlanner = async (plannerId: string): Promise<Contract[]> => {
-  const response = await request(
-    "GET",
-    `/contracts/planner/${plannerId}`,
-    "AUTHENTICATED"
-  );
-
-  return response.data as Contract[];
-};
-
 const findOne = async (id: string): Promise<Contract> => {
   const response = await request("GET", `/contracts/${id}`, "AUTHENTICATED");
 
@@ -55,7 +45,6 @@ const remove = async (id: string): Promise<DeleteResponse> => {
 
 const ContractService = {
   findAll,
-  findAllByPlanner,
   findOne,
   create,
   update,

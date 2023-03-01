@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { Link, redirect, useLoaderData } from "react-router-dom";
 import {
   Box,
   Button,
@@ -10,12 +8,18 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+import { useEffect, useState } from "react";
+
+import { Link, useLoaderData } from "react-router-dom";
+
+import { useSnackbar } from "notistack";
 
 import api from "../../api";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
+
 import NewCategory from "./NewCategory";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useSnackbar } from "notistack";
 
 type Props = {};
 
@@ -86,7 +90,7 @@ function Categories({}: Props) {
               height: 400,
               border: "1px solid",
               borderColor: grey[300],
-              gridColumn: "1 / 4",
+              gridColumn: "1 / 5",
             }}
           >
             <Typography variant="h6">No categories found</Typography>

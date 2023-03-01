@@ -1,14 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const useSelectedPlannerStore = create<SelectedPlannerStoreState>()(
+export const useSelectedReportStore = create<SelectedReportStoreState>()(
   persist(
     (set) => ({
-      planner: null,
-      setPlanner: (planner) => set({ planner }),
+      report: null,
+      setReport: (report) => set({ report }),
     }),
     {
-      name: "selected-planner",
+      name: "selected-report",
     }
   )
 );
@@ -24,6 +24,18 @@ export const useTokenStore = create<TokenStoreState>()(
     }),
     {
       name: "tokens",
+    }
+  )
+);
+
+export const useActiveUserStore = create<ActiveUserStoreState>()(
+  persist(
+    (set) => ({
+      activeUser: null,
+      setActiveUser: (activeUser) => set({ activeUser }),
+    }),
+    {
+      name: "activeUser",
     }
   )
 );

@@ -1,13 +1,13 @@
 import CategoryService from "./categories";
 import ContractService from "./contracts";
-import PlannerService from "./planners";
+import ReportService from "./reports";
 import TransationService from "./transactions";
 import AuthenticationService from "./authentication";
 
 const api = {
   categories: CategoryService,
   contracts: ContractService,
-  planners: PlannerService,
+  reports: ReportService,
   transactions: TransationService,
   authentication: AuthenticationService,
 };

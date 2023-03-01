@@ -7,19 +7,20 @@ import {
   Typography,
 } from "@mui/material";
 import api from "../../api";
-import { useSelectedPlannerStore } from "../../stores";
+import { useActiveUserStore } from "../../stores";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewContract({ onAdd }: Props) {
-  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
-    selectedPlanner: state.planner,
+  const { activeUser } = useActiveUserStore((state) => ({
+    activeUser: state.activeUser,
   }));
+
   const [values, setValues] = useState<ContractCreate>({
-    title: "",
-    planner: selectedPlanner,
+    name: "",
+    user: activeUser?.sub ?? "",
   });
 
   const handleChange =
@@ -29,14 +30,11 @@ function NewContract({ onAdd }: Props) {
 
   const handleSubmit = async (event: React.MouseEvent) => {
     event.preventDefault();
-    await api.contracts.create({
-      title: values.title,
-      planner: selectedPlanner?.id ?? null,
-    });
+    await api.contracts.create(values);
 
     setValues({
-      title: "",
-      planner: selectedPlanner,
+      ...values,
+      name: "",
     });
 
     onAdd();
@@ -48,11 +46,11 @@ function NewContract({ onAdd }: Props) {
         Add Contract
       </Typography>
       <FormControl fullWidth sx={{ my: 2 }}>
-        <InputLabel htmlFor="title">Title</InputLabel>
+        <InputLabel htmlFor="name">Name</InputLabel>
         <OutlinedInput
-          value={values.title}
-          onChange={handleChange("title")}
-          id="title"
+          value={values.name}
+          onChange={handleChange("name")}
+          id="name"
           label="Name"
         />
       </FormControl>

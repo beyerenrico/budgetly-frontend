@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Button,
   FormControl,
@@ -7,14 +7,20 @@ import {
   Typography,
 } from "@mui/material";
 import api from "../../api";
+import { useActiveUserStore } from "../../stores";
 
 type Props = {
   onAdd: () => void;
 };
 
 function NewCategory({ onAdd }: Props) {
+  const { activeUser } = useActiveUserStore((state) => ({
+    activeUser: state.activeUser,
+  }));
+
   const [values, setValues] = useState<CategoryCreate>({
     name: "",
+    user: activeUser?.sub ?? "",
   });
 
   const handleChange =
@@ -24,11 +30,10 @@ function NewCategory({ onAdd }: Props) {
 
   const handleSubmit = async (event: React.MouseEvent) => {
     event.preventDefault();
-    await api.categories.create({
-      name: values.name,
-    });
+    await api.categories.create(values);
 
     setValues({
+      ...values,
       name: "",
     });
 
