@@ -6,7 +6,6 @@ import Home from "./routes/Dashboard/Home";
 import SignUpPage from "./routes/SignUp/SignUpPage";
 import SignInPage from "./routes/SignIn/SignInPage";
 import Cards, { cardsLoader } from "./routes/Cards/CardsPage";
-import NewAccount, { newAccountLoader } from "./routes/Cards/NewAccount";
 import Transactions, {
   transactionsLoader,
 } from "./routes/Transactions/TransactionsPage";
@@ -77,12 +76,6 @@ const router = createBrowserRouter([
         element: <Contracts />,
         errorElement: <ErrorBoundary />,
         loader: contractsLoader,
-      },
-      {
-        path: "cards/new",
-        element: <NewAccount />,
-        errorElement: <ErrorBoundary />,
-        loader: newAccountLoader,
       },
       {
         path: "cards",
