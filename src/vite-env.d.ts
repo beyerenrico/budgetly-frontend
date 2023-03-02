@@ -1,24 +1,27 @@
 /// <reference types="vite/client" />
 
-interface Planner {
+interface Report {
   id: string;
   name: string;
   description: string;
+  user: string;
   transactions?: Transaction[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface PlannerCreate {
+interface ReportCreate {
   name: string;
   description: string;
+  user: string;
 }
 
-type PlannerUpdate = PlannerCreate;
+type ReportUpdate = ReportCreate;
 
 interface Category {
   id: string;
   name: string;
+  user: string;
   transactions?: Transaction[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -27,50 +30,68 @@ interface Category {
 interface CategoryCreate {
   id?: string;
   name: string;
+  user: string;
 }
 
 type CategoryUpdate = CategoryCreate;
 
 interface Contract {
   id: string;
-  title: string;
+  name: string;
+  user: string;
   transactions?: Transaction[];
-  planner: Planner | string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 interface ContractCreate {
   id?: string;
-  title: string;
-  planner: Planner | string | null;
+  name: string;
+  user: string;
 }
 
 type ContractUpdate = ContractCreate;
 
+interface Card {
+  id: string;
+  name: string;
+  user: string;
+  transactions?: Transaction[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface CardCreate {
+  id?: string;
+  name: string;
+  user: string;
+}
+
 interface Transaction {
   id?: string;
-  title: string;
+  name: string;
   sender: string;
   receiver: string;
   amount: number;
   date: string;
-  planner: Planner | string | null;
-  category: Category | string | null;
-  contract?: Contract | string | null;
+  user: string;
+  category?: Category | string;
+  report?: Report | string;
+  contract?: Contract | string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 interface TransactionCreate {
-  title: string;
+  name: string;
   sender: string;
   receiver: string;
   amount: number;
   date: string;
-  planner: string | null;
-  category: string | null;
-  contract?: string | null;
+  user: string;
+  category?: string;
+  report?: string;
+  contract?: string;
 }
 
 type TransactionUpdate = TransactionCreate;
@@ -86,14 +107,19 @@ interface DeleteResponse {
   affected?: number;
 }
 
-interface SelectedPlannerStoreState {
-  planner: Planner | null;
-  setPlanner: (planner: Planner | null) => void;
+interface SelectedReportStoreState {
+  report: Report | null;
+  setReport: (report: Report | null) => void;
 }
 
 interface TokenStoreState {
   tokens: SuccessfullSignInResponse;
   setTokens: (tokens: SuccessfullSignInResponse) => void;
+}
+
+interface ActiveUserStoreState {
+  activeUser: ActiveUserData | null;
+  setActiveUser: (activeUser: ActiveUserData | null) => void;
 }
 
 interface Service<T> {
@@ -123,4 +149,25 @@ interface SignInData {
 interface SuccessfullSignInResponse {
   accessToken: string;
   refreshToken: string;
+}
+
+interface ActiveUserData {
+  sub: string;
+  email: string;
+}
+
+interface NordigenInstitution {
+  bic: string;
+  countries: string[];
+  id: string;
+  logo: string;
+  name: string;
+  transaction_total_days: string;
+}
+
+interface NordigenTokenResponse {
+  access: string;
+  access_expires: number;
+  refresh: string;
+  refresh_expires: number;
 }

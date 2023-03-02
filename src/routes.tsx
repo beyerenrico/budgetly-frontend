@@ -1,6 +1,12 @@
 import { createBrowserRouter, redirect } from "react-router-dom";
+import jwt_decode from "jwt-decode";
+
 import Root from "./routes/Root";
 import Home from "./routes/Dashboard/Home";
+import SignUpPage from "./routes/SignUp/SignUpPage";
+import SignInPage from "./routes/SignIn/SignInPage";
+import Cards, { cardsLoader } from "./routes/Cards/CardsPage";
+import NewAccount, { newAccountLoader } from "./routes/Cards/NewAccount";
 import Transactions, {
   transactionsLoader,
 } from "./routes/Transactions/TransactionsPage";
@@ -9,10 +15,13 @@ import Categories, {
 } from "./routes/Categories/CategoriesPage";
 import Reports, { reportsLoader } from "./routes/Reports/ReportsPage";
 import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
-import SignUpPage from "./routes/SignUp/SignUpPage";
-import SignInPage from "./routes/SignIn/SignInPage";
+
 import { useTokenStore } from "./stores";
-import jwt_decode from "jwt-decode";
+
+const ErrorBoundary = () => {
+  // TODO: Add more meaningful error handling
+  return <div>Something went wrong</div>;
+};
 
 const router = createBrowserRouter([
   {
@@ -36,33 +45,50 @@ const router = createBrowserRouter([
         setTokens({ accessToken: "", refreshToken: "" });
         return redirect("/auth/sign-in?expired=true");
       }
+
       return null;
     },
     children: [
       {
         path: "/",
         element: <Home />,
-        loader: homeLoader,
+        errorElement: <ErrorBoundary />,
       },
       {
-        path: "planners",
-        element: <Planners />,
-        loader: plannersLoader,
+        path: "reports",
+        element: <Reports />,
+        errorElement: <ErrorBoundary />,
+        loader: reportsLoader,
       },
       {
         path: "transactions",
         element: <Transactions />,
+        errorElement: <ErrorBoundary />,
         loader: transactionsLoader,
       },
       {
         path: "categories",
         element: <Categories />,
+        errorElement: <ErrorBoundary />,
         loader: categoriesLoader,
       },
       {
         path: "contracts",
         element: <Contracts />,
+        errorElement: <ErrorBoundary />,
         loader: contractsLoader,
+      },
+      {
+        path: "cards/new",
+        element: <NewAccount />,
+        errorElement: <ErrorBoundary />,
+        loader: newAccountLoader,
+      },
+      {
+        path: "cards",
+        element: <Cards />,
+        errorElement: <ErrorBoundary />,
+        loader: cardsLoader,
       },
       { path: "*" },
     ],
