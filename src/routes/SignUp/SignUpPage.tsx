@@ -1,178 +1,98 @@
+import { Link, useNavigate } from "react-router-dom";
+
+import api from "../../api";
+
+import { IconCheck } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
+import { useForm } from "@mantine/form";
 import {
   Box,
   Button,
-  FormControl,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  OutlinedInput,
-  Paper,
-  Typography,
-} from "@mui/material";
-import { grey } from "@mui/material/colors";
-import { useState } from "react";
-import { Link, redirect, useNavigate } from "react-router-dom";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import api from "../../api";
-import { useTokenStore } from "../../stores";
-import { notifications } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons-react";
+  Container,
+  Group,
+  Space,
+  TextInput,
+  Title,
+} from "@mantine/core";
 
 type Props = {};
 
-export async function signInLoader() {
-  const { accessToken } = useTokenStore.getState().tokens;
+function SignUpPage({}: Props) {
+  const form = useForm({
+    initialValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
 
-  if (accessToken) {
-    return redirect("/");
-  }
-
-  return null;
-}
-
-function SignInPage({}: Props) {
-  const navigation = useNavigate();
-  const [values, setValues] = useState<SignUpSchema>({
-    email: "",
-    password: "",
-    confirmPassword: "",
+    validate: {
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      password: (value) =>
+        value.length > 5 ? null : "Password must be at least 6 characters long",
+      confirmPassword: (value) =>
+        value.length > 5 ? null : "Password must be at least 6 characters long",
+    },
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
-  const handleClickShowConfirmPassword = () =>
-    setShowConfirmPassword((show) => !show);
+  const navigation = useNavigate();
 
-  const handleMouseDownPassword = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    event.preventDefault();
-  };
-
-  const handleChange =
-    (prop: keyof SignUpSchema) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-    };
-
-  const handleSubmit = async (event: React.MouseEvent) => {
-    event.preventDefault();
-
-    // TODO: Implement form validation via zod
-
-    await api.authentication
-      .signUp({
-        email: values.email,
-        password: values.password,
-      })
-      .then(() => {
-        navigation("/auth/sign-in");
-        notifications.show({
-          title: "Success",
-          message: "User profile created",
-          color: "green",
-          icon: <IconCheck />,
-        });
+  const handleSubmit = async (values: typeof form.values) => {
+    await api.authentication.signUp(values).then((res) => {
+      notifications.show({
+        title: "Success",
+        message: "User profile created",
+        color: "green",
+        icon: <IconCheck />,
       });
+
+      navigation("/auth/sign-in");
+    });
   };
 
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      flexDirection="column"
-      bgcolor={grey[50]}
-      sx={{ height: "100vh", width: "100vw" }}
-    >
-      <Box textAlign="center" mb={2}>
-        <Typography variant="h1">Sign up for a new account</Typography>
-        <Typography variant="h6">
-          Or <Link to="/auth/sign-in">login to an existing one</Link>
-        </Typography>
-      </Box>
-      <Box component={Paper} width={350} paddingX={4}>
-        <form>
-          <FormControl fullWidth sx={{ mt: 4 }}>
-            <InputLabel htmlFor="email">Email</InputLabel>
-            <OutlinedInput
-              value={values.email}
-              onChange={handleChange("email")}
-              id="email"
-              label="email"
-              type="email"
-            />
-          </FormControl>
-          <FormControl fullWidth sx={{ my: 4 }}>
-            <InputLabel htmlFor="password">Password</InputLabel>
-            <OutlinedInput
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={values.password}
-              onChange={handleChange("password")}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                    size="small"
-                  >
-                    {showPassword ? (
-                      <VisibilityOff fontSize="small" />
-                    ) : (
-                      <Visibility fontSize="small" />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              }
-              label="Password"
-            />
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <InputLabel htmlFor="confirmPassword">Confirm Password</InputLabel>
-            <OutlinedInput
-              id="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              value={values.confirmPassword}
-              onChange={handleChange("confirmPassword")}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowConfirmPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                    size="small"
-                  >
-                    {showPassword ? (
-                      <VisibilityOff fontSize="small" />
-                    ) : (
-                      <Visibility fontSize="small" />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              }
-              label="Confirm Password"
-            />
-          </FormControl>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            fullWidth
-            size="large"
-            sx={{ mb: 4 }}
-            type="submit"
-          >
-            Sign up
-          </Button>
+    <Container sx={{ height: "100vh", display: "flex", alignItems: "center" }}>
+      <Box w={400} mx="auto">
+        <Box sx={{ textAlign: "center" }}>
+          <Title order={1}>Create a new profile</Title>
+          <Title order={6}>
+            Or{" "}
+            <Link style={{ textDecoration: "none" }} to="/auth/sign-in">
+              sign in to an existing one
+            </Link>
+          </Title>
+        </Box>
+        <Space h="xl" />
+        <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
+          <TextInput
+            withAsterisk
+            label="Email"
+            placeholder="your@email.com"
+            {...form.getInputProps("email")}
+          />
+          <Space h="md" />
+          <TextInput
+            withAsterisk
+            label="Password"
+            placeholder="********"
+            type="password"
+            {...form.getInputProps("password")}
+          />
+          <Space h="md" />
+          <TextInput
+            withAsterisk
+            label="Confirm Password"
+            placeholder="********"
+            type="password"
+            {...form.getInputProps("confirmPassword")}
+          />
+
+          <Group position="right" mt="md">
+            <Button type="submit">Submit</Button>
+          </Group>
         </form>
       </Box>
-    </Box>
+    </Container>
   );
 }
 
-export default SignInPage;
+export default SignUpPage;
