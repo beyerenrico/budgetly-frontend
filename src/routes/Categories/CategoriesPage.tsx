@@ -14,12 +14,12 @@ import { useEffect, useState } from "react";
 
 import { Link, useLoaderData } from "react-router-dom";
 
-import { useSnackbar } from "notistack";
-
 import api from "../../api";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
 
 import NewCategory from "./NewCategory";
+import { notifications } from "@mantine/notifications";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 type Props = {};
 
@@ -29,7 +29,6 @@ export async function categoriesLoader() {
 }
 
 function Categories({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const { categories } = useLoaderData() as {
     categories: Category[];
   };
@@ -39,6 +38,12 @@ function Categories({}: Props) {
 
   const addHandler = async () => {
     await categoriesLoader().then((data) => setData(data.categories));
+    notifications.show({
+      title: "Success",
+      message: "Category created",
+      color: "green",
+      icon: <IconCheck />,
+    });
     setDrawerOpen(false);
   };
 
@@ -122,14 +127,20 @@ function Categories({}: Props) {
                   try {
                     await api.categories.remove(category.id);
                   } catch (error) {
-                    enqueueSnackbar("This category contains transactions", {
-                      variant: "error",
+                    notifications.show({
+                      title: "Error",
+                      message: "You can't delete a category with transactions",
+                      color: "red",
+                      icon: <IconX />,
                     });
                     return;
                   }
 
-                  enqueueSnackbar("Category deleted", {
-                    variant: "success",
+                  notifications.show({
+                    title: "Success",
+                    message: "Category deleted",
+                    color: "green",
+                    icon: <IconCheck />,
                   });
                   setData(data.filter((c) => c.id !== category.id));
                 }}

@@ -16,7 +16,8 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import api from "../../api";
 import { useTokenStore } from "../../stores";
-import { useSnackbar } from "notistack";
+import { notifications } from "@mantine/notifications";
+import { IconCheck } from "@tabler/icons-react";
 
 type Props = {};
 
@@ -31,7 +32,6 @@ export async function signInLoader() {
 }
 
 function SignInPage({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const navigation = useNavigate();
   const [values, setValues] = useState<SignUpSchema>({
     email: "",
@@ -69,7 +69,12 @@ function SignInPage({}: Props) {
       })
       .then(() => {
         navigation("/auth/sign-in");
-        enqueueSnackbar("Account created", { variant: "success" });
+        notifications.show({
+          title: "Success",
+          message: "User profile created",
+          color: "green",
+          icon: <IconCheck />,
+        });
       });
   };
 

@@ -8,6 +8,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import FolderIcon from "@mui/icons-material/Folder";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import { IconCheck } from "@tabler/icons-react";
 
 import {
   AppBar,
@@ -37,15 +38,14 @@ import {
 } from "react-router-dom";
 import { grey } from "@mui/material/colors";
 import { useActiveUserStore, useTokenStore } from "../stores";
-import { useSnackbar } from "notistack";
 import { useState } from "react";
+import { notifications } from "@mantine/notifications";
 
 const drawerWidth = 240;
 
 interface Props {}
 
 export default function Root({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
   const navigation = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,7 +70,12 @@ export default function Root({}: Props) {
     });
     setActiveUser(null);
     navigation("/auth/sign-in");
-    enqueueSnackbar("Successfully signed out", { variant: "success" });
+    notifications.show({
+      title: "Success",
+      message: "You have been signed out",
+      color: "green",
+      icon: <IconCheck />,
+    });
   };
 
   const drawer = RootDrawer(createDrawerMenu(), location);

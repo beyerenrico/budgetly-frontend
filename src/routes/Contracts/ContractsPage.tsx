@@ -15,7 +15,8 @@ import api from "../../api";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
 import NewContract from "./NewContract";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useSnackbar } from "notistack";
+import { notifications } from "@mantine/notifications";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 type Props = {};
 
@@ -25,7 +26,6 @@ export async function contractsLoader() {
 }
 
 function Contracts({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const { contracts } = useLoaderData() as {
     contracts: Category[];
   };
@@ -35,6 +35,12 @@ function Contracts({}: Props) {
 
   const addHandler = async () => {
     await contractsLoader().then((data) => setData(data.contracts));
+    notifications.show({
+      title: "Success",
+      message: "Contract created",
+      color: "green",
+      icon: <IconCheck />,
+    });
     setDrawerOpen(false);
   };
 
@@ -117,14 +123,20 @@ function Contracts({}: Props) {
                   try {
                     await api.contracts.remove(contract.id);
                   } catch (error) {
-                    enqueueSnackbar("This contract contains transactions", {
-                      variant: "error",
+                    notifications.show({
+                      title: "Error",
+                      message: "You can't delete a contract with transactions",
+                      color: "red",
+                      icon: <IconX />,
                     });
                     return;
                   }
 
-                  enqueueSnackbar("Contract deleted", {
-                    variant: "success",
+                  notifications.show({
+                    title: "Success",
+                    message: "Contract deleted",
+                    color: "green",
+                    icon: <IconCheck />,
                   });
                   setData(data.filter((c) => c.id !== contract.id));
                 }}

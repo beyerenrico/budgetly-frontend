@@ -17,17 +17,16 @@ import { useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
 
-import { useSnackbar } from "notistack";
-
 import api from "../../api";
 import { useTokenStore, useActiveUserStore } from "../../stores";
 
 import jwt_decode from "jwt-decode";
+import { IconCheck } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 
 type Props = {};
 
 function SignInPage({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const navigation = useNavigate();
   const [values, setValues] = useState<SignInData>({
     email: "",
@@ -68,7 +67,12 @@ function SignInPage({}: Props) {
       const { sub, email } = jwt_decode(res.accessToken) as ActiveUserData;
       setActiveUser({ sub, email });
       navigation("/");
-      enqueueSnackbar("Successfully signed in", { variant: "success" });
+      notifications.show({
+        title: "Success",
+        message: "You have been signed in",
+        color: "green",
+        icon: <IconCheck />,
+      });
     });
   };
 

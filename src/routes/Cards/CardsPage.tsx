@@ -14,9 +14,9 @@ import { useEffect, useState } from "react";
 
 import { Link, useLoaderData } from "react-router-dom";
 
-import { useSnackbar } from "notistack";
-
 import api from "../../api";
+import { notifications } from "@mantine/notifications";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 type Props = {};
 
@@ -26,7 +26,6 @@ export async function cardsLoader() {
 }
 
 function Cards({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const { cards } = useLoaderData() as {
     cards: Card[];
   };
@@ -36,6 +35,12 @@ function Cards({}: Props) {
 
   const addHandler = async () => {
     await cardsLoader().then((data) => setData(data.cards));
+    notifications.show({
+      title: "Success",
+      message: "Card created",
+      color: "green",
+      icon: <IconCheck />,
+    });
     setDrawerOpen(false);
   };
 
@@ -112,14 +117,20 @@ function Cards({}: Props) {
                   try {
                     await api.cards.remove(card.id);
                   } catch (error) {
-                    enqueueSnackbar("This card contains transactions", {
-                      variant: "error",
+                    notifications.show({
+                      title: "Error",
+                      message: "You can't delete a card with transactions",
+                      color: "red",
+                      icon: <IconX />,
                     });
                     return;
                   }
 
-                  enqueueSnackbar("Card deleted", {
-                    variant: "success",
+                  notifications.show({
+                    title: "Success",
+                    message: "Card deleted",
+                    color: "green",
+                    icon: <IconCheck />,
                   });
                   setData(data.filter((c) => c.id !== card.id));
                 }}

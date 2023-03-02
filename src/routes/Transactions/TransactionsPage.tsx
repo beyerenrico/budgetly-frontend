@@ -26,8 +26,6 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 
 import moment from "moment";
 
-import { useSnackbar } from "notistack";
-
 import api from "../../api";
 import { useActiveUserStore, useSelectedReportStore } from "../../stores";
 import NewCategory from "../Categories/NewCategory";
@@ -35,6 +33,8 @@ import NewContract from "../Contracts/NewContract";
 import SwipeableTemporaryDrawer from "../../components/Drawer";
 
 import NewTransaction from "./NewTransaction";
+import { notifications } from "@mantine/notifications";
+import { IconCheck } from "@tabler/icons-react";
 
 type Props = {};
 
@@ -53,7 +53,6 @@ export async function transactionsLoader() {
 }
 
 function Transactions({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const apiRef = useGridApiRef();
   const { reports, categories, contracts, transactions } = useLoaderData() as {
@@ -148,7 +147,12 @@ function Transactions({}: Props) {
       setStateTransactions(data);
     });
     setDrawerOpenTransaction(false);
-    enqueueSnackbar("Transaction added", { variant: "success" });
+    notifications.show({
+      title: "Success",
+      message: "Transaction created",
+      color: "green",
+      icon: <IconCheck />,
+    });
   };
 
   const addHandlerCategory = async () => {
@@ -162,7 +166,12 @@ function Transactions({}: Props) {
       );
     });
     setDrawerOpenCategory(false);
-    enqueueSnackbar("Category added", { variant: "success" });
+    notifications.show({
+      title: "Success",
+      message: "Category created",
+      color: "green",
+      icon: <IconCheck />,
+    });
   };
 
   const addHandlerContract = async () => {
@@ -176,7 +185,12 @@ function Transactions({}: Props) {
       );
     });
     setDrawerOpenContract(false);
-    enqueueSnackbar("Contract added", { variant: "success" });
+    notifications.show({
+      title: "Success",
+      message: "Contract created",
+      color: "green",
+      icon: <IconCheck />,
+    });
   };
 
   const actions: {
@@ -321,12 +335,21 @@ function Transactions({}: Props) {
             Toolbar: GridToolbar,
           }}
           onProcessRowUpdateError={(params) => {
-            console.log(params);
-            enqueueSnackbar(params.error.message, { variant: "error" });
+            notifications.show({
+              title: "Error",
+              message: params.error.message,
+              color: "red",
+              icon: <IconCheck />,
+            });
           }}
           processRowUpdate={async (newRow: Transaction) => {
             if (!activeUser) {
-              enqueueSnackbar("Not logged in", { variant: "error" });
+              notifications.show({
+                title: "Error",
+                message: "Access denied",
+                color: "red",
+                icon: <IconCheck />,
+              });
               navigate("/auth/sign-in");
               throw new Error("Not logged in");
             }
@@ -356,7 +379,12 @@ function Transactions({}: Props) {
               contract: newRow.contract?.id,
             });
 
-            enqueueSnackbar("Transaction updated", { variant: "success" });
+            notifications.show({
+              title: "Success",
+              message: "Transaction updated",
+              color: "green",
+              icon: <IconCheck />,
+            });
 
             newRow.report = JSON.stringify(newRow.report);
             newRow.category = JSON.stringify(newRow.category);

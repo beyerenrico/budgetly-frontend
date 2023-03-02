@@ -13,8 +13,9 @@ import SwipeableTemporaryDrawer from "../../components/Drawer";
 import { useEffect, useState } from "react";
 import NewReport from "./NewReport";
 import { grey } from "@mui/material/colors";
-import { useSnackbar } from "notistack";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { IconCheck, IconX } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 
 type Props = {};
 
@@ -24,7 +25,6 @@ export async function reportsLoader() {
 }
 
 function Reports({}: Props) {
-  const { enqueueSnackbar } = useSnackbar();
   const { reports } = useLoaderData() as {
     reports: Report[];
   };
@@ -34,7 +34,12 @@ function Reports({}: Props) {
 
   const addHandler = async () => {
     await reportsLoader().then((data) => setData(data.reports));
-    enqueueSnackbar("Report added", { variant: "success" });
+    notifications.show({
+      title: "Success",
+      message: "Report created",
+      color: "green",
+      icon: <IconCheck />,
+    });
     setDrawerOpen(false);
   };
 
@@ -125,14 +130,20 @@ function Reports({}: Props) {
                   try {
                     await api.reports.remove(report.id);
                   } catch (error) {
-                    enqueueSnackbar("This report contains transactions", {
-                      variant: "error",
+                    notifications.show({
+                      title: "Error",
+                      message: "You can't delete a report with transactions",
+                      color: "red",
+                      icon: <IconX />,
                     });
                     return;
                   }
 
-                  enqueueSnackbar("Report deleted", {
-                    variant: "success",
+                  notifications.show({
+                    title: "Success",
+                    message: "Report deleted",
+                    color: "green",
+                    icon: <IconCheck />,
                   });
                   setData(data.filter((c) => c.id !== report.id));
                 }}
