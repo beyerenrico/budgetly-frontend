@@ -1,11 +1,13 @@
-import axios from "axios";
+import axios, { RawAxiosRequestHeaders } from "axios";
+
 import { useTokenStore } from "../stores";
 
 const request = async <T>(
   method: string,
   url: string,
   headerType: "AUTHENTICATED" | "PUBLIC",
-  data?: T
+  data?: T,
+  customHeaders?: RawAxiosRequestHeaders
 ) => {
   let headers;
 
@@ -38,7 +40,7 @@ const request = async <T>(
     method,
     url,
     data,
-    headers,
+    headers: { ...headers, ...customHeaders },
   });
 };
 
