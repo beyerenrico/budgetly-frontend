@@ -6,12 +6,12 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CategoryIcon from "@mui/icons-material/Category";
 import FolderIcon from "@mui/icons-material/Folder";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 
 import {
   AppBar,
   Box,
-  Button,
-  Chip,
   Collapse,
   CssBaseline,
   Divider,
@@ -22,7 +22,10 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   Toolbar,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -33,8 +36,9 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { grey } from "@mui/material/colors";
-import { useSelectedPlannerStore, useTokenStore } from "../stores";
+import { useActiveUserStore, useTokenStore } from "../stores";
 import { useSnackbar } from "notistack";
+import { useState } from "react";
 
 const drawerWidth = 240;
 
@@ -44,14 +48,15 @@ export default function Root({}: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
   const navigation = useNavigate();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const { setTokens } = useTokenStore((state) => ({
     setTokens: state.setTokens,
   }));
 
-  const { selectedPlanner } = useSelectedPlannerStore((state) => ({
-    selectedPlanner: state.planner,
+  const { setActiveUser } = useActiveUserStore((state) => ({
+    setActiveUser: state.setActiveUser,
   }));
 
   const handleDrawerToggle = () => {
@@ -63,11 +68,20 @@ export default function Root({}: Props) {
       accessToken: "",
       refreshToken: "",
     });
+    setActiveUser(null);
     navigation("/auth/sign-in");
     enqueueSnackbar("Successfully signed out", { variant: "success" });
   };
 
-  const drawer = RootDrawer(createDrawerMenu(selectedPlanner), location);
+  const drawer = RootDrawer(createDrawerMenu(), location);
+
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -76,14 +90,17 @@ export default function Root({}: Props) {
         elevation={0}
         position="fixed"
         sx={{
-          backgroundColor: grey[900],
+          backgroundColor: grey[300],
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
           borderBottom: "1px solid",
           borderColor: grey[300],
+          borderRadius: 0,
+          boxShadow: "none",
+          color: grey[900],
         }}
       >
-        <Toolbar variant="dense">
+        <Toolbar variant="dense" sx={{ borderRadius: 0 }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -94,21 +111,33 @@ export default function Root({}: Props) {
             <MenuIcon />
           </IconButton>
           <Typography sx={{ display: { sm: "none" } }}>Budgetly</Typography>
-          <Chip
-            component={Link}
-            to="/planners"
-            label={selectedPlanner?.name ?? "Select a planner"}
-            color="secondary"
-            sx={{ ml: "auto", mr: 2, cursor: "pointer" }}
-          />
-          <Button
-            variant="contained"
-            color="info"
-            size="small"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
+          <Box sx={{ flexGrow: 0, ml: "auto" }}>
+            <Tooltip title="Open settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <MoreVertIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: "45px" }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
+              <MenuItem onClick={handleLogout}>
+                <Typography textAlign="center">Logout</Typography>
+              </MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBar>
       <Box
@@ -126,6 +155,7 @@ export default function Root({}: Props) {
           }}
           sx={{
             display: { xs: "block", sm: "none" },
+            borderRadius: 0,
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
@@ -138,6 +168,7 @@ export default function Root({}: Props) {
           variant="permanent"
           sx={{
             display: { xs: "none", sm: "block" },
+            borderRadius: 0,
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
@@ -182,18 +213,18 @@ export default function Root({}: Props) {
 function RootDrawer(
   drawerMenu: (
     | {
-        title: string;
+        name: string;
         active: boolean;
         icon: JSX.Element;
         href: string;
         children?: undefined;
       }
     | {
-        title: string;
+        name: string;
         active: boolean;
         icon: JSX.Element;
         href: string;
-        children: { title: string; href: string }[];
+        children: { name: string; href: string }[];
       }
   )[],
   location: Location
@@ -202,14 +233,14 @@ function RootDrawer(
     <div>
       <Toolbar
         variant="dense"
-        sx={{ backgroundColor: grey[900], color: grey[50] }}
+        sx={{ backgroundColor: grey[300], borderRadius: 0 }}
       >
         Budgetly
       </Toolbar>
       <Divider />
       <List>
         {drawerMenu.map(
-          ({ title, active, icon, href, children }, parentIndex) => {
+          ({ name, active, icon, href, children }, parentIndex) => {
             if (active) {
               return (
                 <Box key={parentIndex}>
@@ -220,7 +251,7 @@ function RootDrawer(
                       selected={location.pathname === href}
                     >
                       <ListItemIcon>{icon}</ListItemIcon>
-                      <ListItemText primary={title} />
+                      <ListItemText primary={name} />
                     </ListItemButton>
                   </ListItem>
                   <Collapse
@@ -240,7 +271,7 @@ function RootDrawer(
                             sx={{ pl: 9, color: grey[700] }}
                             dense
                           >
-                            <ListItemText primary={child.title} />
+                            <ListItemText primary={child.name} />
                           </ListItemButton>
                         </ListItem>
                       ))}
@@ -256,47 +287,43 @@ function RootDrawer(
   );
 }
 
-function createDrawerMenu(selectedPlanner: Planner | null) {
+function createDrawerMenu() {
   return [
     {
-      title: "Dashboard",
+      name: "Dashboard",
       active: true,
       icon: <HomeIcon />,
       href: "/",
     },
     {
-      title: "Planners",
+      name: "Cards",
       active: true,
-      icon: <CalendarTodayIcon />,
-      href: "/planners",
+      icon: <CreditCardIcon />,
+      href: "/cards",
     },
     {
-      title: "Categories",
+      name: "Transactions",
+      active: true,
+      icon: <AccountBalanceIcon />,
+      href: "/transactions",
+    },
+    {
+      name: "Contracts",
+      active: true,
+      icon: <FolderIcon />,
+      href: "/contracts",
+    },
+    {
+      name: "Reports",
+      active: true,
+      icon: <CalendarTodayIcon />,
+      href: "/reports",
+    },
+    {
+      name: "Categories",
       active: true,
       icon: <CategoryIcon />,
       href: "/categories",
-    },
-    {
-      title: "Transactions",
-      active: !!selectedPlanner,
-      icon: <AccountBalanceIcon />,
-      href: "/transactions",
-      children: [
-        {
-          title: "Overview",
-          href: "/transactions",
-        },
-        {
-          title: "Monthly",
-          href: "/transactions/monthly",
-        },
-      ],
-    },
-    {
-      title: "Contracts",
-      active: !!selectedPlanner,
-      icon: <FolderIcon />,
-      href: "/contracts",
     },
   ];
 }
