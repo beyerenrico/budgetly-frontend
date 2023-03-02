@@ -4,9 +4,8 @@ const getTokens = async (): Promise<NordigenTokenResponse> => {
   const response = await axios.post(
     "/nord/api/v2/token/new/",
     {
-      secret_id: "29f69149-2d19-4fc6-a629-32add379634c",
-      secret_key:
-        "c9a2af6bbf48cadb64e6ae4f1782d914aacd5faddaacc004a499eecd1bac54341ef5e44676b85c92fcdbcf1f2843793fcb109c65243b4c8e72ec234f3bea48bd",
+      secret_id: process.env.NORDIGEN_SECRET_ID,
+      secret_key: process.env.NORDIGEN_SECRET_KEY,
     },
     {
       headers: {
