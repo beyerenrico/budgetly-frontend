@@ -1,19 +1,12 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Title } from "@mantine/core";
 
 type Props = {};
-
-export async function homeLoader() {}
 
 function Home({}: Props) {
   return (
     <>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 2 }}
-      >
-        <Typography variant="h4">Dashboard</Typography>
+      <Box sx={{ mb: 2 }}>
+        <Title order={1}>Dashboard</Title>
       </Box>
     </>
   );
