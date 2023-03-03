@@ -17,6 +17,7 @@ import {
   LoadingOverlay,
   Notification,
   Space,
+  Text,
   TextInput,
   Title,
 } from "@mantine/core";
@@ -102,7 +103,7 @@ function SignInPage({}: Props) {
     <Container sx={{ height: "100vh", display: "flex", alignItems: "center" }}>
       <Box w={400} mx="auto">
         <Box sx={{ textAlign: "center" }}>
-          {location.state?.message && location.state?.code && (
+          {location.state && (
             <Notification
               icon={
                 location.state.code === 200 ? (
@@ -111,11 +112,17 @@ function SignInPage({}: Props) {
                   <IconX size="1.1rem" />
                 )
               }
-              color={location.state.code === 200 ? "green" : "red"}
+              color={location.state?.code === 200 ? "green" : "red"}
               sx={{ marginBottom: 16 }}
               withCloseButton={false}
             >
-              {location.state.message}
+              {location.state.message && <Text>{location.state.message}</Text>}
+              {location.search === "?expired=true" && (
+                <Text>Your session expired. Please sign in again.</Text>
+              )}
+              {!location.search && !location.state.message && (
+                <Text>Something went wrong. Please sign in again.</Text>
+              )}
             </Notification>
           )}
           <Title order={1}>Sign in to your account</Title>
