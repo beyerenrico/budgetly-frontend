@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Container,
+  FocusTrap,
   Group,
   LoadingOverlay,
   Notification,
@@ -126,35 +127,37 @@ function SignInPage({}: Props) {
           </Title>
         </Box>
         <Space h="xl" />
-        <form
-          onSubmit={form.onSubmit((values) => handleSubmit(values))}
-          style={{
-            position: "relative",
-            padding: 16,
-            borderRadius: 8,
-            overflow: "hidden",
-          }}
-        >
-          <LoadingOverlay visible={visible} overlayBlur={2} />
-          <TextInput
-            withAsterisk
-            label="Email"
-            placeholder="your@email.com"
-            {...form.getInputProps("email")}
-          />
-          <Space h="sm" />
-          <TextInput
-            withAsterisk
-            label="Password"
-            placeholder="********"
-            type="password"
-            {...form.getInputProps("password")}
-          />
+        <FocusTrap>
+          <form
+            onSubmit={form.onSubmit((values) => handleSubmit(values))}
+            style={{
+              position: "relative",
+              padding: 16,
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
+          >
+            <LoadingOverlay visible={visible} overlayBlur={2} />
+            <TextInput
+              withAsterisk
+              label="Email"
+              placeholder="your@email.com"
+              {...form.getInputProps("email")}
+            />
+            <Space h="sm" />
+            <TextInput
+              withAsterisk
+              label="Password"
+              placeholder="********"
+              type="password"
+              {...form.getInputProps("password")}
+            />
 
-          <Group position="right" mt="md">
-            <Button type="submit">Login</Button>
-          </Group>
-        </form>
+            <Group position="right" mt="md">
+              <Button type="submit">Login</Button>
+            </Group>
+          </form>
+        </FocusTrap>
       </Box>
     </Container>
   );

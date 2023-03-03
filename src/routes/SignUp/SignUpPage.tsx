@@ -9,6 +9,7 @@ import {
   Box,
   Button,
   Container,
+  FocusTrap,
   Group,
   LoadingOverlay,
   Notification,
@@ -116,43 +117,45 @@ function SignUpPage({}: Props) {
           </Title>
         </Box>
         <Space h="xl" />
-        <form
-          onSubmit={form.onSubmit((values) => handleSubmit(values))}
-          style={{
-            position: "relative",
-            padding: 16,
-            borderRadius: 8,
-            overflow: "hidden",
-          }}
-        >
-          <LoadingOverlay visible={visible} overlayBlur={2} />
-          <TextInput
-            withAsterisk
-            label="Email"
-            placeholder="your@email.com"
-            {...form.getInputProps("email")}
-          />
-          <Space h="md" />
-          <TextInput
-            withAsterisk
-            label="Password"
-            placeholder="********"
-            type="password"
-            {...form.getInputProps("password")}
-          />
-          <Space h="md" />
-          <TextInput
-            withAsterisk
-            label="Confirm Password"
-            placeholder="********"
-            type="password"
-            {...form.getInputProps("confirmPassword")}
-          />
+        <FocusTrap>
+          <form
+            onSubmit={form.onSubmit((values) => handleSubmit(values))}
+            style={{
+              position: "relative",
+              padding: 16,
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
+          >
+            <LoadingOverlay visible={visible} overlayBlur={2} />
+            <TextInput
+              withAsterisk
+              label="Email"
+              placeholder="your@email.com"
+              {...form.getInputProps("email")}
+            />
+            <Space h="md" />
+            <TextInput
+              withAsterisk
+              label="Password"
+              placeholder="********"
+              type="password"
+              {...form.getInputProps("password")}
+            />
+            <Space h="md" />
+            <TextInput
+              withAsterisk
+              label="Confirm Password"
+              placeholder="********"
+              type="password"
+              {...form.getInputProps("confirmPassword")}
+            />
 
-          <Group position="right" mt="md">
-            <Button type="submit">Submit</Button>
-          </Group>
-        </form>
+            <Group position="right" mt="md">
+              <Button type="submit">Submit</Button>
+            </Group>
+          </form>
+        </FocusTrap>
       </Box>
     </Container>
   );
