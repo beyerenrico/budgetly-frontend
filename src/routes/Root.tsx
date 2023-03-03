@@ -23,9 +23,7 @@ export default function Root({}: Props) {
       styles={{
         main: {
           background:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[8]
-              : theme.colors.gray[0],
+            theme.colorScheme === "dark" ? "transparent" : theme.colors.gray[0],
         },
       }}
       navbarOffsetBreakpoint="sm"
