@@ -36,7 +36,13 @@ export function User() {
       refreshToken: "",
     });
     setActiveUser(null);
-    navigation("/auth/sign-in");
+    navigation("/auth/sign-in", {
+      state: {
+        code: 200,
+        message: "You have been signed out",
+        _isRedirect: true,
+      },
+    });
     notifications.show({
       title: "Success",
       message: "You have been signed out",
