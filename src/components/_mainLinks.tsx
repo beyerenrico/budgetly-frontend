@@ -62,8 +62,8 @@ const data: MainLinkProps[] = [
   {
     icon: <IconCreditCard size="1rem" />,
     color: "teal",
-    label: "Cards",
-    href: "/cards",
+    label: "Accounts",
+    href: "/accounts",
   },
   {
     icon: <IconMoneybag size="1rem" />,

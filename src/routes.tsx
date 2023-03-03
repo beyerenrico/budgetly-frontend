@@ -1,21 +1,3 @@
-import { createBrowserRouter, redirect, useRouteError } from "react-router-dom";
-import jwt_decode from "jwt-decode";
-
-import Root from "./routes/Root";
-import Home from "./routes/Dashboard/Home";
-import SignUpPage from "./routes/SignUp/SignUpPage";
-import SignInPage from "./routes/SignIn/SignInPage";
-import Cards, { cardsLoader } from "./routes/Cards/CardsPage";
-import Transactions, {
-  transactionsLoader,
-} from "./routes/Transactions/TransactionsPage";
-import Categories, {
-  categoriesLoader,
-} from "./routes/Categories/CategoriesPage";
-import Reports, { reportsLoader } from "./routes/Reports/ReportsPage";
-import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
-
-import { useTokenStore } from "./stores";
 import {
   Container,
   Flex,
@@ -25,6 +7,26 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+
+import { createBrowserRouter, redirect, useRouteError } from "react-router-dom";
+
+import jwt_decode from "jwt-decode";
+
+import { useTokenStore } from "./stores";
+
+import Root from "./routes/Root";
+import Home from "./routes/Dashboard/Home";
+import Reports, { reportsLoader } from "./routes/Reports/ReportsPage";
+import SignInPage from "./routes/SignIn/SignInPage";
+import SignUpPage from "./routes/SignUp/SignUpPage";
+import Transactions, {
+  transactionsLoader,
+} from "./routes/Transactions/TransactionsPage";
+import Accounts, { accountsLoader } from "./routes/Accounts/AccountsPage";
+import Categories, {
+  categoriesLoader,
+} from "./routes/Categories/CategoriesPage";
+import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
 
 const ErrorBoundary = () => {
   let error = useRouteError();
@@ -114,10 +116,10 @@ const router = createBrowserRouter([
         loader: contractsLoader,
       },
       {
-        path: "cards",
-        element: <Cards />,
+        path: "accounts",
+        element: <Accounts />,
         errorElement: <ErrorBoundary />,
-        loader: cardsLoader,
+        loader: accountsLoader,
       },
       { path: "*" },
     ],

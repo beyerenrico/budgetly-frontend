@@ -52,7 +52,7 @@ interface ContractCreate {
 
 type ContractUpdate = ContractCreate;
 
-interface Card {
+interface Account {
   id: string;
   name: string;
   user: string;
@@ -61,7 +61,7 @@ interface Card {
   updatedAt?: Date;
 }
 
-interface CardCreate {
+interface AccountCreate {
   id?: string;
   name: string;
   user: string;
