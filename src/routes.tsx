@@ -1,4 +1,4 @@
-import { createBrowserRouter, redirect } from "react-router-dom";
+import { createBrowserRouter, redirect, useRouteError } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 
 import Root from "./routes/Root";
@@ -16,10 +16,46 @@ import Reports, { reportsLoader } from "./routes/Reports/ReportsPage";
 import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
 
 import { useTokenStore } from "./stores";
+import {
+  Container,
+  Flex,
+  MediaQuery,
+  Space,
+  Spoiler,
+  Text,
+  Title,
+} from "@mantine/core";
 
 const ErrorBoundary = () => {
-  // TODO: Add more meaningful error handling
-  return <div>Something went wrong</div>;
+  let error = useRouteError();
+  console.log(error);
+
+  return (
+    <>
+      <MediaQuery largerThan="md" styles={{ height: "500px" }}>
+        <Flex align="center" sx={{ height: "100%" }}>
+          <Container size="sm" sx={{ borderLeft: "4px solid #C1C2C5" }}>
+            <Title order={1}>Something went wrong 😵</Title>
+            <Space h="md" />
+            <Text color="dimmed">
+              There seems to be an issue on our side. We are already working on
+              it! Please try again later and sorry for the inconvenience.
+            </Text>
+            <Space h="md" />
+            <Spoiler
+              showLabel="Show error details"
+              hideLabel="Hide"
+              maxHeight={0}
+            >
+              <Text sx={{ fontFamily: "monospace" }}>
+                {error?.message ?? "No error message"}
+              </Text>
+            </Spoiler>
+          </Container>
+        </Flex>
+      </MediaQuery>
+    </>
+  );
 };
 
 const router = createBrowserRouter([
