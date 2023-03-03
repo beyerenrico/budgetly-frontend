@@ -1,17 +1,20 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import api from "../../api";
 import { useTokenStore, useActiveUserStore } from "../../stores";
 
 import jwt_decode from "jwt-decode";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import {
   Box,
   Button,
   Container,
   Group,
+  LoadingOverlay,
+  Notification,
   Space,
   TextInput,
   Title,
@@ -34,6 +37,8 @@ function SignInPage({}: Props) {
   });
 
   const navigation = useNavigate();
+  const location = useLocation();
+  const [visible, { toggle }] = useDisclosure(false);
 
   const { setTokens } = useTokenStore((state) => ({
     setTokens: state.setTokens,
@@ -44,6 +49,7 @@ function SignInPage({}: Props) {
   }));
 
   const handleSubmit = async (values: typeof form.values) => {
+    toggle();
     await api.authentication.signIn(values).then((res) => {
       const { sub, email } = jwt_decode(res.accessToken) as ActiveUserData;
 
@@ -56,7 +62,13 @@ function SignInPage({}: Props) {
 
       setActiveUser({ sub, email });
       setTokens(res);
-      navigation("/");
+      navigation("/", {
+        state: {
+          code: 200,
+          message: "You have been signed in",
+          _isRedirect: true,
+        },
+      });
     });
   };
 
@@ -64,6 +76,22 @@ function SignInPage({}: Props) {
     <Container sx={{ height: "100vh", display: "flex", alignItems: "center" }}>
       <Box w={400} mx="auto">
         <Box sx={{ textAlign: "center" }}>
+          {location.state?.message && location.state?.code && (
+            <Notification
+              icon={
+                location.state.code === 200 ? (
+                  <IconCheck size="1.1rem" />
+                ) : (
+                  <IconX size="1.1rem" />
+                )
+              }
+              color={location.state.code === 200 ? "green" : "red"}
+              sx={{ marginBottom: 16 }}
+              withCloseButton={false}
+            >
+              {location.state.message}
+            </Notification>
+          )}
           <Title order={1}>Sign in to your account</Title>
           <Title order={6}>
             Or{" "}
@@ -73,7 +101,16 @@ function SignInPage({}: Props) {
           </Title>
         </Box>
         <Space h="xl" />
-        <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
+        <form
+          onSubmit={form.onSubmit((values) => handleSubmit(values))}
+          style={{
+            position: "relative",
+            padding: 16,
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        >
+          <LoadingOverlay visible={visible} overlayBlur={2} />
           <TextInput
             withAsterisk
             label="Email"

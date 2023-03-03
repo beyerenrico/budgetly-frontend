@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import api from "../../api";
 
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import {
@@ -10,10 +10,13 @@ import {
   Button,
   Container,
   Group,
+  LoadingOverlay,
+  Notification,
   Space,
   TextInput,
   Title,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 type Props = {};
 
@@ -34,9 +37,12 @@ function SignUpPage({}: Props) {
     },
   });
 
+  const [visible, { toggle }] = useDisclosure(false);
   const navigation = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (values: typeof form.values) => {
+    toggle();
     await api.authentication.signUp(values).then((res) => {
       notifications.show({
         title: "Success",
@@ -45,7 +51,13 @@ function SignUpPage({}: Props) {
         icon: <IconCheck />,
       });
 
-      navigation("/auth/sign-in");
+      navigation("/auth/sign-in", {
+        state: {
+          code: 200,
+          message: "Your user profile has been created. Please sign in.",
+          _isRedirect: true,
+        },
+      });
     });
   };
 
@@ -53,6 +65,22 @@ function SignUpPage({}: Props) {
     <Container sx={{ height: "100vh", display: "flex", alignItems: "center" }}>
       <Box w={400} mx="auto">
         <Box sx={{ textAlign: "center" }}>
+          {location.state?.message && location.state?.code && (
+            <Notification
+              icon={
+                location.state.code.startsWith("2") ? (
+                  <IconCheck size="1.1rem" />
+                ) : (
+                  <IconX size="1.1rem" />
+                )
+              }
+              color={location.state.code.startsWith("2") ? "green" : "red"}
+              sx={{ marginBottom: 16 }}
+              withCloseButton={false}
+            >
+              {location.state.message}
+            </Notification>
+          )}
           <Title order={1}>Create a new profile</Title>
           <Title order={6}>
             Or{" "}
@@ -62,7 +90,16 @@ function SignUpPage({}: Props) {
           </Title>
         </Box>
         <Space h="xl" />
-        <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
+        <form
+          onSubmit={form.onSubmit((values) => handleSubmit(values))}
+          style={{
+            position: "relative",
+            padding: 16,
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        >
+          <LoadingOverlay visible={visible} overlayBlur={2} />
           <TextInput
             withAsterisk
             label="Email"
