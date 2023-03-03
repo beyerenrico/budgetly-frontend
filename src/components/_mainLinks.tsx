@@ -1,9 +1,5 @@
 import React from "react";
 import {
-  IconGitPullRequest,
-  IconAlertCircle,
-  IconMessages,
-  IconDatabase,
   IconCalendar,
   IconCategory,
   IconCreditCard,
@@ -12,7 +8,7 @@ import {
   IconMoneybag,
 } from "@tabler/icons-react";
 import { ThemeIcon, UnstyledButton, Group, Text } from "@mantine/core";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 interface MainLinkProps {
   icon: React.ReactNode;
@@ -22,6 +18,8 @@ interface MainLinkProps {
 }
 
 function MainLink({ icon, color, label, href }: MainLinkProps) {
+  const location = useLocation();
+
   return (
     <UnstyledButton
       sx={(theme) => ({
@@ -29,6 +27,7 @@ function MainLink({ icon, color, label, href }: MainLinkProps) {
         width: "100%",
         padding: theme.spacing.xs,
         borderRadius: theme.radius.sm,
+        backgroundColor: location.pathname === href ? theme.colors.dark[6] : "",
         color:
           theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
 
