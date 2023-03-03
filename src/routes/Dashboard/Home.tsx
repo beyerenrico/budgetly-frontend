@@ -1,13 +1,18 @@
-import { Box, Title } from "@mantine/core";
+import { Box, Container, Flex, Group, Text, Title } from "@mantine/core";
 
 type Props = {};
 
 function Home({}: Props) {
   return (
     <>
-      <Box sx={{ mb: 2 }}>
-        <Title order={1}>Dashboard</Title>
-      </Box>
+      <Container size="md">
+        <Flex justify="space-between">
+          <Box>
+            <Title order={1}>Dashboard</Title>
+            <Text color="dimmed">Welcome back!</Text>
+          </Box>
+        </Flex>
+      </Container>
     </>
   );
 }
