@@ -19,6 +19,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { AxiosError } from "axios";
 
 type Props = {};
 
@@ -38,7 +39,7 @@ function SignInPage({}: Props) {
 
   const navigation = useNavigate();
   const location = useLocation();
-  const [visible, { toggle }] = useDisclosure(false);
+  const [visible, { toggle, close }] = useDisclosure(false);
 
   const { setTokens } = useTokenStore((state) => ({
     setTokens: state.setTokens,
@@ -50,26 +51,50 @@ function SignInPage({}: Props) {
 
   const handleSubmit = async (values: typeof form.values) => {
     toggle();
-    await api.authentication.signIn(values).then((res) => {
-      const { sub, email } = jwt_decode(res.accessToken) as ActiveUserData;
+    try {
+      await api.authentication.signIn(values).then((res) => {
+        const { sub, email } = jwt_decode(res.accessToken) as ActiveUserData;
 
-      notifications.show({
-        title: "Success",
-        message: "You have been signed in",
-        color: "green",
-        icon: <IconCheck />,
-      });
-
-      setActiveUser({ sub, email });
-      setTokens(res);
-      navigation("/", {
-        state: {
-          code: 200,
+        notifications.show({
+          title: "Success",
           message: "You have been signed in",
+          color: "green",
+          icon: <IconCheck />,
+        });
+
+        setActiveUser({ sub, email });
+        setTokens(res);
+        navigation("/", {
+          state: {
+            code: 200,
+            message: "You have been signed in",
+            _isRedirect: true,
+          },
+        });
+      });
+    } catch (error) {
+      close();
+
+      if (error instanceof AxiosError) {
+        navigation(location.pathname, {
+          state: {
+            code: error.response?.status,
+            message: error.response?.data.message,
+            _isRedirect: true,
+          },
+        });
+
+        return;
+      }
+
+      navigation(location.pathname, {
+        state: {
+          code: 500,
+          message: "An error occured while signing in. Please try again later.",
           _isRedirect: true,
         },
       });
-    });
+    }
   };
 
   return (

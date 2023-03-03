@@ -17,6 +17,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { AxiosError } from "axios";
 
 type Props = {};
 
@@ -37,28 +38,53 @@ function SignUpPage({}: Props) {
     },
   });
 
-  const [visible, { toggle }] = useDisclosure(false);
+  const [visible, { toggle, close }] = useDisclosure(false);
   const navigation = useNavigate();
   const location = useLocation();
 
   const handleSubmit = async (values: typeof form.values) => {
     toggle();
-    await api.authentication.signUp(values).then((res) => {
-      notifications.show({
-        title: "Success",
-        message: "User profile created",
-        color: "green",
-        icon: <IconCheck />,
-      });
 
-      navigation("/auth/sign-in", {
+    try {
+      await api.authentication.signUp(values).then((res) => {
+        notifications.show({
+          title: "Success",
+          message: "User profile created",
+          color: "green",
+          icon: <IconCheck />,
+        });
+
+        navigation("/auth/sign-in", {
+          state: {
+            code: 200,
+            message: "Your user profile has been created. Please sign in.",
+            _isRedirect: true,
+          },
+        });
+      });
+    } catch (error) {
+      close();
+
+      if (error instanceof AxiosError) {
+        navigation(location.pathname, {
+          state: {
+            code: error.response?.status,
+            message: error.response?.data.message,
+            _isRedirect: true,
+          },
+        });
+
+        return;
+      }
+
+      navigation(location.pathname, {
         state: {
-          code: 200,
-          message: "Your user profile has been created. Please sign in.",
+          code: 500,
+          message: "An error occured while signing in. Please try again later.",
           _isRedirect: true,
         },
       });
-    });
+    }
   };
 
   return (
@@ -68,13 +94,13 @@ function SignUpPage({}: Props) {
           {location.state?.message && location.state?.code && (
             <Notification
               icon={
-                location.state.code.startsWith("2") ? (
+                location.state.code === 200 ? (
                   <IconCheck size="1.1rem" />
                 ) : (
                   <IconX size="1.1rem" />
                 )
               }
-              color={location.state.code.startsWith("2") ? "green" : "red"}
+              color={location.state.code === 200 ? "green" : "red"}
               sx={{ marginBottom: 16 }}
               withCloseButton={false}
             >
