@@ -1,19 +1,23 @@
-import AuthenticationService from "./authentication";
 import AccountService from "./accounts";
+import AuthenticationService from "./authentication";
+import BalanceService from "./balances";
 import CategoryService from "./categories";
 import ContractService from "./contracts";
 import NordigenService from "./nordigen";
 import ReportService from "./reports";
+import RequisitionService from "./requisitions";
 import TransationService from "./transactions";
 
 const api = {
   accounts: AccountService,
+  authentication: AuthenticationService,
+  balances: BalanceService,
   categories: CategoryService,
   contracts: ContractService,
-  reports: ReportService,
-  transactions: TransationService,
-  authentication: AuthenticationService,
   nordigen: NordigenService,
+  reports: ReportService,
+  requisitions: RequisitionService,
+  transactions: TransationService,
 };
 
 export default api;

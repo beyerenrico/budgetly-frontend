@@ -6,7 +6,21 @@ const findAll = async (): Promise<Transaction[]> => {
   return response.data as Transaction[];
 };
 
-const findAllByReport = async (reportId: string): Promise<Transaction[]> => {
+const findAllByAccount = async (
+  accountId: Account["id"]
+): Promise<Transaction[]> => {
+  const response = await request(
+    "GET",
+    `/transactions/account/${accountId}`,
+    "AUTHENTICATED"
+  );
+
+  return response.data as Transaction[];
+};
+
+const findAllByReport = async (
+  reportId: Report["id"]
+): Promise<Transaction[]> => {
   const response = await request(
     "GET",
     `/transactions/report/${reportId}`,
@@ -59,6 +73,7 @@ const remove = async (id: string): Promise<DeleteResponse> => {
 
 const TransactionService = {
   findAll,
+  findAllByAccount,
   findAllByReport,
   findOne,
   create,

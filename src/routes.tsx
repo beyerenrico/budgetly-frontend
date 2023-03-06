@@ -27,10 +27,14 @@ import Categories, {
   categoriesLoader,
 } from "./routes/Categories/CategoriesPage";
 import Contracts, { contractsLoader } from "./routes/Contracts/ContractsPage";
+import AddAccount, { addAccountsLoader } from "./routes/Accounts/AddAccount";
+import RequisitionResults, {
+  requisitionsResultsLoader,
+} from "./routes/Accounts/RequisitionResults";
+import Account, { accountLoader } from "./routes/Accounts/AccountPage";
 
 const ErrorBoundary = () => {
   let error = useRouteError();
-  console.log(error);
 
   return (
     <>
@@ -114,6 +118,26 @@ const router = createBrowserRouter([
         element: <Contracts />,
         errorElement: <ErrorBoundary />,
         loader: contractsLoader,
+      },
+      {
+        path: "accounts/add/requisitions",
+        element: <RequisitionResults />,
+        errorElement: <ErrorBoundary />,
+        loader: requisitionsResultsLoader,
+      },
+      {
+        path: "accounts/add",
+        element: <AddAccount />,
+        errorElement: <ErrorBoundary />,
+        loader: addAccountsLoader,
+      },
+      {
+        path: "accounts/:accountId",
+        element: <Account />,
+        errorElement: <ErrorBoundary />,
+        loader: async ({ params }) => {
+          return accountLoader(params.accountId!);
+        },
       },
       {
         path: "accounts",

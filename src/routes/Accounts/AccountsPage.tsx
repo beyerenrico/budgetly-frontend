@@ -1,16 +1,20 @@
 import { useState } from "react";
 
-import { useLoaderData } from "react-router-dom";
+import { Link, redirect, useLoaderData } from "react-router-dom";
 
 import api from "../../api";
-import { Container, Flex, Grid, Space, Title } from "@mantine/core";
+import { Button, Container, Flex, Grid, Space, Title } from "@mantine/core";
 import SingleAccount from "./SingleAccount";
-import CreateAccount from "./CreateAccount";
 
 type Props = {};
 
 export async function accountsLoader() {
   const accounts = await api.accounts.findAll();
+
+  if (!accounts.length) {
+    return redirect("/accounts/add");
+  }
+
   return { accounts };
 }
 
@@ -22,24 +26,21 @@ function Accounts({}: Props) {
   const [data, setData] = useState<Account[]>(accounts);
 
   const crudHandler = async () => {
-    await accountsLoader().then((data) => setData(data.accounts));
+    await api.accounts.findAll().then((data) => setData(data));
   };
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Flex justify="space-between">
         <Title order={1}>Accounts</Title>
-        <CreateAccount onCreate={crudHandler} />
+        <Button component={Link} to="/accounts/add">
+          Add account
+        </Button>
       </Flex>
       <Space h="xl" />
       <Grid>
-        {data.length === 0 && (
-          <Grid.Col span={12}>
-            <Title order={2}>No accounts found</Title>
-          </Grid.Col>
-        )}
         {data.map((account, index) => (
-          <Grid.Col md={6} lg={4} key={index}>
+          <Grid.Col md={6} key={index}>
             <SingleAccount {...account} onDelete={crudHandler} />
           </Grid.Col>
         ))}
