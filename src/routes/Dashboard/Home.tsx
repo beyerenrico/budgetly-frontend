@@ -5,7 +5,7 @@ type Props = {};
 function Home({}: Props) {
   return (
     <>
-      <Container size="md">
+      <Container size="xl">
         <Flex justify="space-between">
           <Box>
             <Title order={1}>Dashboard</Title>

@@ -26,7 +26,7 @@ function Categories({}: Props) {
   };
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Flex justify="space-between">
         <Title order={1}>Categories</Title>
         <CreateCategory onCreate={crudHandler} />

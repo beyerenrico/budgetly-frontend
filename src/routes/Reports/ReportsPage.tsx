@@ -26,7 +26,7 @@ function Reports({}: Props) {
   };
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Flex justify="space-between">
         <Title order={1}>Reports</Title>
         <CreateReport onCreate={crudHandler} />

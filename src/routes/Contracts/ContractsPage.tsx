@@ -26,7 +26,7 @@ function Contracts({}: Props) {
   };
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Flex justify="space-between">
         <Title order={1}>Contracts</Title>
         <CreateContract onCreate={crudHandler} />
