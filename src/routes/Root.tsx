@@ -5,6 +5,7 @@ import {
   Header,
   MediaQuery,
   Navbar,
+  Space,
   Title,
   useMantineTheme,
 } from "@mantine/core";
@@ -23,7 +24,9 @@ export default function Root({}: Props) {
       styles={{
         main: {
           background:
-            theme.colorScheme === "dark" ? "transparent" : theme.colors.gray[0],
+            theme.colorScheme === "dark"
+              ? theme.colors.gray[9]
+              : theme.colors.gray[0],
         },
       }}
       navbarOffsetBreakpoint="sm"
@@ -63,7 +66,9 @@ export default function Root({}: Props) {
         </Header>
       }
     >
+      <Space h="xl" />
       <Outlet />
+      <Space h="xl" />
     </AppShell>
   );
 }
