@@ -1,3 +1,7 @@
 .mantine-Button-inner {
   justify-content: flex-start;
 }
+
+.mantine-Table-root td {
+  white-space: pre-wrap;
+}
