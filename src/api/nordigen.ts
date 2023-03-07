@@ -55,14 +55,15 @@ const createAgreement = async (
 const createRequisition = async (
   accessToken: NordigenTokenResponse["access"],
   agreementId: NordigenAgreement["id"],
-  institutionId: NordigenInstitution["id"]
+  institutionId: NordigenInstitution["id"],
+  referenceId: string
 ): Promise<NordigenRequisition> => {
   const response = await axios.post(
     `${endpointBase}/requisitions/`,
     {
       redirect: `${import.meta.env.VITE_HOST}/accounts/add/requisitions`,
       institution_id: institutionId,
-      reference: crypto.randomUUID(),
+      reference: referenceId,
       agreement: agreementId,
     },
     {

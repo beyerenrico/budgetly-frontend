@@ -75,31 +75,37 @@ function SingleAccount({ id, iban, balances, onDelete }: Props) {
       </Card.Section>
       <Space h="lg" />
       <Stack>
-        <Title order={2} sx={{ marginBottom: "-20px" }}>
-          {new Intl.NumberFormat("de-DE", {
-            style: "currency",
-            currency: "EUR",
-          }).format(
-            parseFloat(
-              balances?.filter(
-                (balance) => balance.balanceType === "closingBooked"
-              )[0].balanceAmount!
-            )
-          )}
-        </Title>
-        <Text color="dimmed">
-          {new Intl.NumberFormat("de-DE", {
-            style: "currency",
-            currency: "EUR",
-          }).format(
-            parseFloat(
-              balances?.filter(
-                (balance) => balance.balanceType === "interimAvailable"
-              )[0].balanceAmount!
-            )
-          )}{" "}
-          incl. prebooked transactions
-        </Text>
+        {balances?.length && (
+          <>
+            <Title order={2} sx={{ marginBottom: "-20px" }}>
+              {new Intl.NumberFormat("de-DE", {
+                style: "currency",
+                currency: "EUR",
+              }).format(
+                parseFloat(
+                  balances?.filter(
+                    (balance) =>
+                      balance.balanceType === "closingBooked" ||
+                      balance.balanceType === "interimBooked"
+                  )[0]?.balanceAmount
+                )
+              )}
+            </Title>
+            <Text color="dimmed">
+              {new Intl.NumberFormat("de-DE", {
+                style: "currency",
+                currency: "EUR",
+              }).format(
+                parseFloat(
+                  balances?.filter(
+                    (balance) => balance.balanceType === "interimAvailable"
+                  )[0]?.balanceAmount
+                )
+              )}{" "}
+              incl. prebooked transactions
+            </Text>
+          </>
+        )}
       </Stack>
       <Space h="lg" />
       <Group sx={{ display: "flex", justifyContent: "space-between", p: 2 }}>

@@ -56,19 +56,24 @@ function AddAccount({}: Props) {
 
   const handleBankSelect = useCallback(
     async (institution: NordigenInstitution) => {
+      const referenceId = crypto.randomUUID();
       const agreement = await api.nordigen.createAgreement(
         tokens.access,
         institution.id
       );
+
       const requisition = await api.nordigen.createRequisition(
         tokens.access,
         agreement.id,
-        institution.id
+        institution.id,
+        referenceId
       );
+
       setRequisition(requisition);
 
       api.requisitions.create({
-        id: requisition.id,
+        id: referenceId,
+        requisition: requisition.id,
         institution: institution.id,
         link: requisition.link,
         user: activeUser?.sub,

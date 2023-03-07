@@ -70,21 +70,21 @@ interface AccountCreate {
   institution: string;
   user: string;
   requisition: Requisition["id"];
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Transaction {
   id?: string;
-  transactionId: string;
-  status: "booked" | "pending";
-  bankTransactionCode: string;
-  bookingDate: Date;
-  valueDate: Date;
-  creditorAccountIban: string;
-  creditorAccountCurrency: string;
-  debtorAccountIban: string;
-  debtorAccountName: string;
-  remittanceInformationUnstructured: string;
+  transactionId?: string;
+  status?: "booked" | "pending";
+  bankTransactionCode?: string;
+  bookingDate?: Date;
+  valueDate?: Date;
+  creditorAccountIban?: string;
+  creditorAccountCurrency?: string;
+  debtorAccountIban?: string;
+  debtorAccountName?: string;
+  remittanceInformationUnstructured?: string;
   transactionAmount: string;
   transactionCurrency: string;
   user: User["id"];
@@ -101,8 +101,15 @@ interface Balance {
   id?: string;
   balanceAmount: string;
   balanceCurrency: string;
-  balanceType: "closingBooked" | "interimAvailable";
-  creditLimitIncluded: boolean;
+  balanceType:
+    | "closingBooked"
+    | "expected"
+    | "forwardAvailable"
+    | "interimAvailable"
+    | "interimBooked"
+    | "nonInvoiced"
+    | "openingBooked";
+  creditLimitIncluded?: boolean;
   user: User["id"];
   account: Account["id"];
 }
@@ -111,7 +118,8 @@ type BalanceCreate = Balance;
 type BalanceUpdate = BalanceCreate;
 
 interface Requisition {
-  id: NordigenRequisition["id"];
+  id: NordigenRequisition["reference"];
+  requisition: NordigenRequisition["id"];
   institution: NordigenRequisition["institution_id"];
   link: NordigenRequisition["link"];
   user: User["id"];
@@ -236,44 +244,73 @@ interface NordigenTransactionsResponse {
 }
 
 interface NordigenTransaction {
-  bankTransactionCode: string;
-  bookingDate: Date;
-  creditorAccount: {
+  additionalInformation?: string;
+  additionalInformationStructured?: string;
+  balanceAfterTransaction?: NordigenBalance;
+  bankTransactionCode?: string;
+  bookingDate?: Date;
+  bookingDateTime?: Date;
+  checkId?: string;
+  creditorAccount?: {
     iban: string;
     currency: string;
   };
-  debtorAccount: {
+  creditorId?: string;
+  creditorName?: string;
+  debtorAccount?: {
     iban: string;
   };
-  debtorName: string;
-  endToEndId: string;
-  internalTransactionId: string;
-  purposeCode: string;
-  remittanceInformationUnstructured: string;
+  debtorName?: string;
+  endToEndId?: string;
+  internalTransactionId?: string;
+  purposeCode?: string;
+  remittanceInformationUnstructured?: string;
   transactionAmount: {
     amount: string;
     currency: string;
   };
-  transactionId: string;
-  valueDate: Date;
+  transactionId?: string;
+  valueDate?: Date;
+}
+
+interface NordigenBalance {
+  balanceAmount: {
+    amount: string;
+    currency: string;
+  };
+  balanceType:
+    | "closingBooked"
+    | "expected"
+    | "forwardAvailable"
+    | "interimAvailable"
+    | "interimBooked"
+    | "nonInvoiced"
+    | "openingBooked";
+  creditLimitIncluded?: boolean;
+  lastChangeDateTime?: Date;
+  lastCommittedTransaction?: string;
+  referenceDate?: Date;
 }
 
 interface NordigenBalanceResponse {
-  balances: {
-    balanceAmount: {
-      amount: string;
-      currency: string;
-    };
-    balanceType: "closingBooked" | "interimAvailable";
-    creditLimitIncluded: boolean;
-  }[];
+  balances: NordigenBalance[];
 }
 
 interface NordigenDetailsResponse {
-  cashAccountType: string;
+  bban?: string;
+  bic?: string;
+  cashAccountType?: string;
   currency: string;
-  iban: string;
-  product: string;
+  details?: string;
+  displayName?: string;
+  iban?: string;
+  linkedAccounts?: string;
+  msisdn?: string;
+  name?: string;
+  ownerAddressUnstructured?: string;
+  ownerName?: string;
+  product?: string;
   resourceId: string;
-  status: string;
+  status?: string;
+  usage?: string;
 }

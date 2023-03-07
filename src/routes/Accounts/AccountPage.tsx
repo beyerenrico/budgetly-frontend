@@ -82,31 +82,38 @@ function Account({}: Props) {
               <Title order={6} sx={{ marginBottom: "-10px" }}>
                 Current Balance
               </Title>
-              <Title order={2}>
-                {new Intl.NumberFormat("de-DE", {
-                  style: "currency",
-                  currency: "EUR",
-                }).format(
-                  parseFloat(
-                    account.balances?.filter(
-                      (balance) => balance.balanceType === "closingBooked"
-                    )[0].balanceAmount!
-                  )
-                )}
-              </Title>
-              <Text color="dimmed">
-                {new Intl.NumberFormat("de-DE", {
-                  style: "currency",
-                  currency: "EUR",
-                }).format(
-                  parseFloat(
-                    account.balances?.filter(
-                      (balance) => balance.balanceType === "interimAvailable"
-                    )[0].balanceAmount!
-                  )
-                )}{" "}
-                incl. prebooked transactions
-              </Text>
+              {account?.balances?.length && (
+                <>
+                  <Title order={2}>
+                    {new Intl.NumberFormat("de-DE", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(
+                      parseFloat(
+                        account.balances?.filter(
+                          (balance) =>
+                            balance.balanceType === "closingBooked" ||
+                            balance.balanceType === "interimBooked"
+                        )[0]?.balanceAmount
+                      )
+                    )}
+                  </Title>
+                  <Text color="dimmed">
+                    {new Intl.NumberFormat("de-DE", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(
+                      parseFloat(
+                        account.balances?.filter(
+                          (balance) =>
+                            balance.balanceType === "interimAvailable"
+                        )[0]?.balanceAmount
+                      )
+                    )}{" "}
+                    incl. prebooked transactions
+                  </Text>
+                </>
+              )}
             </Stack>
           </Flex>
         </Card>
@@ -124,6 +131,11 @@ function Account({}: Props) {
             accessor: "remittanceInformationUnstructured",
             title: "Description",
             ellipsis: true,
+            render: (record, index) => {
+              return record.remittanceInformationUnstructured
+                ?.split(",")
+                .join("\n");
+            },
           },
           {
             accessor: "transactionAmount",
@@ -170,6 +182,7 @@ function fetchTransactionsFromApi(
 
         Object.keys(transactions).forEach(async (key: "booked" | "pending") => {
           transactions[key].forEach(async (transaction) => {
+            console.log(transaction);
             await api.transactions.create({
               transactionId: transaction.transactionId,
               account: account.id,
@@ -180,9 +193,9 @@ function fetchTransactionsFromApi(
               valueDate: transaction.valueDate,
               transactionAmount: transaction.transactionAmount.amount,
               transactionCurrency: transaction.transactionAmount.currency,
-              creditorAccountIban: transaction.creditorAccount.iban,
-              creditorAccountCurrency: transaction.creditorAccount.currency,
-              debtorAccountIban: transaction.debtorAccount.iban,
+              creditorAccountIban: transaction.creditorAccount?.iban,
+              creditorAccountCurrency: transaction.creditorAccount?.currency,
+              debtorAccountIban: transaction.debtorAccount?.iban,
               debtorAccountName: transaction.debtorName,
               remittanceInformationUnstructured:
                 transaction.remittanceInformationUnstructured,
