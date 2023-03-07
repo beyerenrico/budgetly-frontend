@@ -10,12 +10,14 @@ import CreateContract from "./CreateContract";
 type Props = {};
 
 export async function contractsLoader() {
+  const transactions = await api.transactions.findAll();
   const contracts = await api.contracts.findAll();
-  return { contracts };
+  return { transactions, contracts };
 }
 
 function Contracts({}: Props) {
-  const { contracts } = useLoaderData() as {
+  const { transactions, contracts } = useLoaderData() as {
+    transactions: Transaction[];
     contracts: Contract[];
   };
 
@@ -29,7 +31,7 @@ function Contracts({}: Props) {
     <Container size="xl">
       <Flex justify="space-between">
         <Title order={1}>Contracts</Title>
-        <CreateContract onCreate={crudHandler} />
+        <CreateContract transactions={transactions} onCreate={crudHandler} />
       </Flex>
       <Space h="xl" />
       <Grid>
